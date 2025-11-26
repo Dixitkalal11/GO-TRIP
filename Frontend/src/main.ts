@@ -9,8 +9,10 @@ import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
 import { provideAuth, getAuth } from '@angular/fire/auth';
 
 // Firebase Configuration
+// NOTE: API keys and other secrets must NOT be committed to the repository.
+// Replace the values below with environment-specific config at build time.
 const firebaseConfig = {
-  apiKey: "[REDACTED_FIREBASE_API_KEY]",
+  apiKey: "REPLACE_WITH_FIREBASE_API_KEY",
   authDomain: "gotrip-aa599.firebaseapp.com",
   databaseURL: "https://gotrip-aa599-default-rtdb.firebaseio.com",
   projectId: "gotrip-aa599",
