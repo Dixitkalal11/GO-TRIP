@@ -1,0 +1,18 @@
+# Auto-detect text files and normalize line endings
+* text=auto
+
+# Force LF on these file types
+*.sh eol=lf
+*.bash eol=lf
+*.yml eol=lf
+*.yaml eol=lf
+*.ts eol=lf
+*.js eol=lf
+*.json eol=lf
+
+# Preserve binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
