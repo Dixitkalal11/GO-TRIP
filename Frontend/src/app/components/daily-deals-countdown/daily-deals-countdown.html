@@ -1,0 +1,47 @@
+<div class="daily-deals-banner">
+  <div class="container">
+    <div class="deal-content">
+      <div class="deal-icon">
+        <i class="bi bi-lightning-charge-fill"></i>
+      </div>
+      <div class="deal-info">
+        <div class="deal-label">Today's Special</div>
+        <div class="deal-route">
+          <span class="city">{{ deal.fromCity }}</span>
+          <i class="bi bi-arrow-right"></i>
+          <span class="city">{{ deal.toCity }}</span>
+        </div>
+        <div class="deal-price">
+          <span class="currency">₹</span>
+          <span class="amount">{{ deal.price }}</span>
+          <span class="original-price">₹{{ deal.originalPrice }}</span>
+          <span class="discount-badge">{{ getDiscountPercentage() }}% OFF</span>
+        </div>
+      </div>
+      <div class="countdown-section">
+        <div class="countdown-label">Expires in</div>
+        <div class="countdown-timer">
+          <div class="time-unit">
+            <span class="time-value">{{ formatTime(timeRemaining.hours) }}</span>
+            <span class="time-label">Hours</span>
+          </div>
+          <span class="time-separator">:</span>
+          <div class="time-unit">
+            <span class="time-value">{{ formatTime(timeRemaining.minutes) }}</span>
+            <span class="time-label">Minutes</span>
+          </div>
+          <span class="time-separator">:</span>
+          <div class="time-unit">
+            <span class="time-value">{{ formatTime(timeRemaining.seconds) }}</span>
+            <span class="time-label">Seconds</span>
+          </div>
+        </div>
+      </div>
+      <button class="btn-book-deal" (click)="scrollToPackages()">
+        <i class="bi bi-calendar-check"></i>
+        Book Now
+      </button>
+    </div>
+  </div>
+</div>
+

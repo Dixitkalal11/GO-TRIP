@@ -1,0 +1,538 @@
+<!-- Flight Search Form -->
+<div class="plane-search-container" *ngIf="!showResults">
+  <div class="booking-container">
+    <div class="booking-content-wrapper">
+      <div class="search-form">
+        <div class="search-header">
+          <button class="back-btn" (click)="goBackToBooking()">
+            <i class="bi bi-arrow-left"></i> Back to Travel Modes
+          </button>
+          <h1 class="page-title" style="display: none;">Flight Booking</h1>
+        </div>
+        
+        <div class="form-header">
+        <div class="search-title-card">
+          <h1 class="search-title">Find Your Perfect Flight</h1>
+        </div>
+        <div class="logo-container">
+          <img src="assets/images/GoTrip Logo.png" alt="GoTrip Logo" class="card-logo">
+        </div>
+      </div>
+      
+      <!-- Trip Type (styled) moved to top -->
+      <div class="trip-type-container">
+        <div class="trip-type-options">
+          <label class="trip-type-option">
+            <input type="radio" name="tripType" value="one-way" [(ngModel)]="tripType" (change)="onTripTypeChange()">
+            <span class="trip-type-label">One Way</span>
+          </label>
+          <label class="trip-type-option">
+            <input type="radio" name="tripType" value="round-trip" [(ngModel)]="tripType" (change)="onTripTypeChange()">
+            <span class="trip-type-label">Round Trip</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Main Search Form -->
+      <div class="main-search-form" [class.round-trip]="tripType === 'round-trip'">
+        <!-- From Field -->
+        <div class="search-field">
+          <label class="field-label">FROM</label>
+          <select [(ngModel)]="fromCity" name="from" required (change)="onFromCityChange()">
+            <option value="">Leaving from</option>
+            <option *ngFor="let city of airportCities" [value]="city">{{ city }}</option>
+          </select>
+        </div>
+
+        <!-- Swap Button -->
+        <div class="swap-button" (click)="swapCities()">
+          <i class="bi bi-arrow-left-right"></i>
+        </div>
+
+        <!-- To Field -->
+        <div class="search-field">
+          <label class="field-label">TO</label>
+          <select [(ngModel)]="toCity" name="to" required (change)="onToCityChange()">
+            <option value="">Going to</option>
+            <option *ngFor="let city of airportCities" [value]="city" [disabled]="city === fromCity">{{ city }}</option>
+          </select>
+        </div>
+
+        <!-- Departure Date -->
+        <div class="search-field">
+          <label class="field-label">DEPARTURE</label>
+          <input type="date" [(ngModel)]="travelDate" name="date" [min]="getTodayDate()" required />
+        </div>
+
+        <!-- Return Date - Only show for Round Trip -->
+        <div class="search-field" *ngIf="tripType === 'round-trip'">
+          <label class="field-label">RETURN</label>
+          <input type="date" [(ngModel)]="returnDate" name="returnDate" [min]="getMinReturnDate()" placeholder="Add Return for bigger discounts" />
+        </div>
+      </div>
+
+        <!-- Special Fares -->
+        <div class="discount-section">
+          <div class="special-fares">
+            <div class="fare-option" 
+                 [class.active]="selectedDiscountType === 'regular'"
+                 [class.disabled]="!canUseDiscountType('regular')"
+                 (click)="selectDiscountType('regular')">
+              <span>Regular</span>
+              <small>Standard pricing</small>
+            </div>
+            <div class="fare-option" 
+                 [class.active]="selectedDiscountType === 'student'"
+                 [class.disabled]="!canUseDiscountType('student')"
+                 (click)="selectDiscountType('student')">
+              <span>Student</span>
+              <small>{{getCurrentCoinsEarned('student')}} coins bonus</small>
+              <div class="booking-info" *ngIf="userBookingStats.totalBookings < 3">
+                <small>First 3 bookings: +5 bonus!</small>
+              </div>
+              <div class="coins-info" *ngIf="!canUseDiscountType('student')">
+                <small>Need {{getDiscountInfo('student').coinsRequired}} coins</small>
+              </div>
+            </div>
+            <div class="fare-option" 
+                 [class.active]="selectedDiscountType === 'senior'"
+                 [class.disabled]="!canUseDiscountType('senior')"
+                 (click)="selectDiscountType('senior')">
+              <span>Senior Citizen</span>
+              <small>{{getCurrentCoinsEarned('senior')}} coins bonus</small>
+              <div class="booking-info" *ngIf="userBookingStats.totalBookings < 3">
+                <small>First 3 bookings: +5 bonus!</small>
+              </div>
+              <div class="coins-info" *ngIf="!canUseDiscountType('senior')">
+                <small>Need {{getDiscountInfo('senior').coinsRequired}} coins</small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Search Button -->
+        <div class="search-btn-wrapper">
+          <button type="submit" class="search-btn" (click)="searchFlights()" [disabled]="!fromCity || !toCity || !travelDate || (tripType === 'round-trip' && !returnDate)">
+            <i class="bi bi-search"></i>
+            SEARCH FLIGHTS
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Flight Results -->
+<div class="plane-results-container" *ngIf="showResults && !selectedFlight">
+  <div class="container">
+    <div class="results-header">
+      <button class="back-btn" (click)="goBackToSearchForm()">
+        <i class="bi bi-arrow-left"></i> Modify Search
+      </button>
+      <div class="route-info">
+        <span class="from-city">{{ fromCity }}</span>
+        <i class="bi bi-arrow-right"></i>
+        <span class="to-city">{{ toCity }}</span>
+        <span class="travel-date">{{ travelDate }}</span>
+      </div>
+    </div>
+
+    <div class="results-count">
+      <h2>{{ flightOptions.length }} flights found from {{ fromCity }} to {{ toCity }} on {{ travelDate }}</h2>
+    </div>
+
+    <div class="flight-options">
+      <div class="flight-card" *ngFor="let flight of flightOptions">
+        <div class="flight-header">
+          <div class="operator-info">
+            <div class="flight-icon">
+              <i class="bi bi-airplane"></i>
+            </div>
+            <div class="operator-details">
+              <span class="operator-name">{{ flight.operator }}</span>
+              <span class="flight-type">{{ flight.aircraftType }}</span>
+              <span class="flight-number">{{ flight.flightNumber }}</span>
+            </div>
+          </div>
+          <div class="rating">
+            <i class="bi bi-star-fill"></i>
+            <span>{{ flight.rating }} ({{ flight.reviews }} reviews)</span>
+          </div>
+        </div>
+
+        <div class="flight-timings">
+          <div class="departure">
+            <div class="time">{{ flight.departureTime }}</div>
+            <div class="city">{{ fromCity }}</div>
+          </div>
+          <div class="duration-line">
+            <div class="line"></div>
+            <div class="duration">{{ flight.duration }}</div>
+            <div class="line"></div>
+          </div>
+          <div class="arrival">
+            <div class="time">{{ flight.arrivalTime }}</div>
+            <div class="city">{{ toCity }}</div>
+          </div>
+        </div>
+
+        <div class="flight-class">
+          <span class="class-badge">{{ flight.classType }}</span>
+        </div>
+
+        <div class="flight-amenities">
+          <span class="amenity" *ngFor="let amenity of flight.amenities">{{ amenity }}</span>
+        </div>
+
+        <div class="flight-footer">
+          <div class="availability">
+            <i class="bi bi-lightning-fill"></i>
+            <span>{{ flight.seatsLeft }} seats left</span>
+          </div>
+          <div class="price-section">
+            <div class="price">₹ {{ flight.price }}</div>
+            <div class="price-label">per person</div>
+          </div>
+          <button class="select-btn" (click)="selectFlight(flight)">
+            Select
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Flight Booking Details -->
+<div class="plane-booking-container" *ngIf="selectedFlight">
+  <div class="container">
+    <!-- Back Button -->
+    <div class="results-header" style="margin-bottom: 1.5rem;">
+      <button class="back-btn" (click)="goBackToSearch()">
+        <i class="bi bi-arrow-left"></i> Back to Flight Options
+      </button>
+      <div class="route-info">
+        <span class="from-city">{{ fromCity }}</span>
+        <i class="bi bi-arrow-right"></i>
+        <span class="to-city">{{ toCity }}</span>
+        <span class="travel-date">{{ travelDate }}</span>
+      </div>
+    </div>
+    
+    <!-- Trip Details Card -->
+    <div class="trip-details-card">
+      <div class="card-header">
+        <i class="bi bi-airplane"></i>
+        <h3>Flight Trip Details</h3>
+      </div>
+      <div class="trip-info">
+        <div class="info-item">
+          <span class="label">From</span>
+          <span class="value">{{ fromCity }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">To</span>
+          <span class="value">{{ toCity }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">Date</span>
+          <span class="value">{{ travelDate }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">Flight</span>
+          <span class="value">{{ selectedFlight.operator }} {{ selectedFlight.flightNumber }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">Class</span>
+          <span class="value">{{ selectedFlight.classType }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">Departure</span>
+          <span class="value">{{ selectedFlight.departureTime }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">Arrival</span>
+          <span class="value">{{ selectedFlight.arrivalTime }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">Duration</span>
+          <span class="value">{{ selectedFlight.duration }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">Price per person</span>
+          <span class="value price-value">₹{{ selectedFlight.price }}</span>
+          <span class="coins-badge">+{{ getTotalCoins() }} coins</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Primary Contact Details Section -->
+    <div class="contact-details-section">
+      <div class="section-header">
+        <div class="header-left">
+          <i class="bi bi-person-lines-fill"></i>
+          <h3>Primary Contact Details</h3>
+        </div>
+      </div>
+      <form #contactForm="ngForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Mobile Number<span class="required-asterisk">*</span></label>
+            <div class="input-group">
+              <i class="bi bi-telephone"></i>
+              <input 
+                type="tel" 
+                name="mobileNumber"
+                [(ngModel)]="bookingContact.mobileNumber" 
+                placeholder="Enter mobile number"
+                required
+                pattern="[0-9]{10}"
+                #mobileNumber="ngModel"
+                (blur)="onMobileBlur()">
+            </div>
+            <app-form-error [control]="mobileNumber.control" fieldName="Mobile number"></app-form-error>
+          </div>
+          <div class="form-group">
+            <label>Email ID<span class="required-asterisk">*</span></label>
+            <div class="input-group">
+              <i class="bi bi-envelope"></i>
+              <input 
+                type="email" 
+                name="emailId"
+                [(ngModel)]="bookingContact.emailId" 
+                placeholder="Enter email address"
+                required
+                email
+                #emailId="ngModel"
+                (blur)="onEmailBlur()">
+            </div>
+            <app-form-error [control]="emailId.control" fieldName="Email"></app-form-error>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Passenger Details Section -->
+    <div class="passenger-details-section">
+      <div class="section-header">
+        <div class="header-left">
+          <i class="bi bi-people-fill"></i>
+          <h3>Mandatory Passenger Details ({{ passengers.length }} passenger{{ passengers.length > 1 ? 's' : '' }})</h3>
+        </div>
+        <button class="add-passenger-btn" (click)="addPassenger()">Add Passenger</button>
+      </div>
+
+      <div class="passenger-forms">
+        <div class="passenger-form" *ngFor="let passenger of passengers; let i = index">
+          <h4>Passenger {{ i + 1 }}</h4>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Full Name<span class="required-asterisk">*</span></label>
+              <div class="input-group">
+                <i class="bi bi-person"></i>
+                <input 
+                  type="text" 
+                  name="fullName{{i}}"
+                  [(ngModel)]="passenger.fullName" 
+                  placeholder="Enter full name"
+                  required
+                  #fullName="ngModel"
+                  (blur)="passenger.fullName = validationService.removeExtraSpaces(passenger.fullName)">
+              </div>
+              <app-form-error [control]="fullName.control" fieldName="Full name"></app-form-error>
+            </div>
+            <div class="form-group">
+              <label>Age<span class="required-asterisk">*</span></label>
+              <div class="input-group">
+                <i class="bi bi-calendar"></i>
+                <input 
+                  type="number" 
+                  name="age{{i}}"
+                  [(ngModel)]="passenger.age" 
+                  placeholder="Age"
+                  min="1"
+                  max="120"
+                  required
+                  #age="ngModel">
+              </div>
+              <app-form-error [control]="age.control" fieldName="Age"></app-form-error>
+            </div>
+            <div class="form-group">
+              <label>Gender<span class="required-asterisk">*</span></label>
+              <div class="input-group">
+                <select 
+                  name="gender{{i}}"
+                  [(ngModel)]="passenger.gender"
+                  required
+                  #gender="ngModel">
+                  <option value="">Select gender</option>
+                  <option *ngFor="let genderOption of genderOptions" [value]="genderOption.toLowerCase()">{{ genderOption }}</option>
+                </select>
+                <i class="bi bi-chevron-down"></i>
+              </div>
+              <app-form-error [control]="gender.control" fieldName="Gender"></app-form-error>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Seat Number</label>
+              <div class="input-group">
+                <i class="bi bi-ticket-detailed"></i>
+                <input type="text" [(ngModel)]="passenger.seatNumber" placeholder="Auto-generated" readonly>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Emergency Contact *</label>
+              <div class="input-group">
+                <i class="bi bi-telephone"></i>
+                <input type="tel" [(ngModel)]="passenger.emergencyContact" placeholder="Emergency contact number">
+              </div>
+            </div>
+          </div>
+          
+          <!-- ID Proof Section -->
+          <div class="form-section" *ngIf="isIdProofRequired()">
+            <h5 class="section-title">🆔 ID Proof Details (Mandatory)</h5>
+            <div class="form-row">
+              <div class="form-group" [class.field-error]="isIdProofRequired() && !passenger.idProofType">
+                <label>ID Proof Type *</label>
+                <div class="input-group" [class.input-error]="isIdProofRequired() && !passenger.idProofType">
+                  <select [(ngModel)]="passenger.idProofType" [class.error-border]="isIdProofRequired() && !passenger.idProofType">
+                    <option value="">Select ID proof type</option>
+                    <option *ngFor="let idType of idProofTypes" [value]="idType">{{ idType }}</option>
+                  </select>
+                  <i class="bi bi-chevron-down"></i>
+                </div>
+                <span class="error-message" *ngIf="isIdProofRequired() && !passenger.idProofType">ID Proof Type is required</span>
+              </div>
+              <div class="form-group" [class.field-error]="isIdProofRequired() && !passenger.idProofNumber">
+                <label>ID Proof Number *</label>
+                <div class="input-group" [class.input-error]="isIdProofRequired() && !passenger.idProofNumber">
+                  <i class="bi bi-card-text"></i>
+                  <input type="text" [(ngModel)]="passenger.idProofNumber" placeholder="Enter ID proof number" [class.error-border]="isIdProofRequired() && !passenger.idProofNumber">
+                </div>
+                <span class="error-message" *ngIf="isIdProofRequired() && !passenger.idProofNumber">ID Proof Number is required</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Additional Flight Preferences -->
+          <div class="form-section">
+            <h5 class="section-title">✈️ Flight Travel Preferences</h5>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Meal Preference</label>
+                <div class="input-group">
+                  <select [(ngModel)]="passenger.mealPreference">
+                    <option value="">Select meal preference</option>
+                    <option *ngFor="let meal of mealPreferences" [value]="meal">{{ meal }}</option>
+                  </select>
+                  <i class="bi bi-chevron-down"></i>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Seat Preference</label>
+                <div class="input-group">
+                  <select [(ngModel)]="passenger.seatPreference">
+                    <option value="">Select seat preference</option>
+                    <option *ngFor="let seat of seatPreferences" [value]="seat">{{ seat }}</option>
+                  </select>
+                  <i class="bi bi-chevron-down"></i>
+                </div>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Frequent Flyer Number</label>
+                <div class="input-group">
+                  <i class="bi bi-airplane"></i>
+                  <input type="text" [(ngModel)]="passenger.frequentFlyerNumber" placeholder="Frequent flyer number (optional)">
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Passport Number</label>
+                <div class="input-group">
+                  <i class="bi bi-passport"></i>
+                  <input type="text" [(ngModel)]="passenger.passportNumber" placeholder="Passport number (optional)">
+                </div>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Travel Insurance</label>
+                <div class="checkbox-group">
+                  <input type="checkbox" [(ngModel)]="passenger.travelInsurance" id="insurance-{{i}}">
+                  <label for="insurance-{{i}}">Yes, I want travel insurance</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Additional Passenger Details -->
+          <div class="form-section">
+            <h5 class="section-title">🧍 Passenger Extra Details</h5>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Date of Birth</label>
+                <div class="input-group">
+                  <i class="bi bi-calendar"></i>
+                  <input type="date" [(ngModel)]="passenger.dateOfBirth" placeholder="DD/MM/YYYY">
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Title</label>
+                <div class="input-group">
+                  <select [(ngModel)]="passenger.title">
+                    <option value="">Select title</option>
+                    <option *ngFor="let title of titleOptions" [value]="title">{{ title }}</option>
+                  </select>
+                  <i class="bi bi-chevron-down"></i>
+                </div>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Special Assistance</label>
+                <div class="input-group">
+                  <select [(ngModel)]="passenger.specialAssistance">
+                    <option *ngFor="let assistance of specialAssistanceOptions" [value]="assistance">{{ assistance }}</option>
+                  </select>
+                  <i class="bi bi-chevron-down"></i>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Baggage Preference</label>
+                <div class="input-group">
+                  <select [(ngModel)]="passenger.baggagePreference">
+                    <option *ngFor="let baggage of baggagePreferenceOptions" [value]="baggage">{{ baggage }}</option>
+                  </select>
+                  <i class="bi bi-chevron-down"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <button class="remove-passenger-btn" *ngIf="passengers.length > 1" (click)="removePassenger(i)">
+            <i class="bi bi-trash"></i>
+            Remove Passenger
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Payment Summary -->
+    <div class="payment-summary-card">
+      <div class="summary-left">
+        <div class="total-amount">
+          <span class="total-label">Total: ₹{{ getTotalPrice() }}</span>
+          <span class="coins-earned">Earn {{ getTotalCoins() }} coins</span>
+        </div>
+        <div class="passenger-info">
+          For {{ passengers.length }} passenger{{ passengers.length > 1 ? 's' : '' }} • {{ selectedFlight.classType }} • Auto seat assignment
+        </div>
+      </div>
+      <button class="proceed-payment-btn" (click)="proceedToPayment()">
+        Proceed to Payment
+      </button>
+    </div>
+  </div>
+</div>

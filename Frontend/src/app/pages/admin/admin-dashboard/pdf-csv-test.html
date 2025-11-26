@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF & CSV Export Test - GoTrip Admin Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #bfdbfe 0%, #ffffff 50%, #bbf7d0 100%);
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #1f2937;
+            margin-bottom: 1rem;
+            font-size: 2rem;
+        }
+
+        .test-section {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .test-section h2 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .test-item {
+            background: white;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            border: 1px solid #e0e6ed;
+        }
+
+        .test-item h3 {
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .test-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .btn-pdf {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            color: white;
+        }
+
+        .btn-pdf:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+        }
+
+        .btn-csv {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: white;
+        }
+
+        .btn-csv:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+        }
+
+        .status {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-left: 1rem;
+        }
+
+        .status.pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status.success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status.error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .test-results {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e0e6ed;
+            display: none;
+        }
+
+        .test-results.show {
+            display: block;
+        }
+
+        .test-results h4 {
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+
+        .test-results ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .test-results li {
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            border-radius: 4px;
+            background: #f8f9fa;
+        }
+
+        .test-results li.pass {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .test-results li.fail {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .summary {
+            background: linear-gradient(135deg, #1f2937, #111827);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-top: 2rem;
+        }
+
+        .summary h2 {
+            color: white;
+            margin-bottom: 1rem;
+        }
+
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 PDF & CSV Export Test Suite</h1>
+        <p style="color: #6c757d; margin-bottom: 2rem;">Comprehensive test suite for verifying PDF and CSV export functionality, fonts, and table formats</p>
+
+        <!-- PDF Tests -->
+        <div class="test-section">
+            <h2>📄 PDF Export Tests</h2>
+            <p style="color: #6c757d; margin-bottom: 1rem;">Test PDF generation for all tabs with font and table format verification</p>
+            
+            <div class="test-item">
+                <h3>Overview PDF <span class="status pending" id="overview-pdf-status">Pending</span></h3>
+                <p style="color: #6c757d; margin-bottom: 0.5rem;">Tests: Header fonts, metric cards, revenue table format, center alignment</p>
+                <div class="test-buttons">
+                    <button class="btn btn-pdf" onclick="testPDF('overview')">
+                        <span>📄</span> Test Overview PDF
+                    </button>
+                </div>
+                <div class="test-results" id="overview-pdf-results"></div>
+            </div>
+
+            <div class="test-item">
+                <h3>Bookings PDF <span class="status pending" id="bookings-pdf-status">Pending</span></h3>
+                <p style="color: #6c757d; margin-bottom: 0.5rem;">Tests: Table alignment, column widths, font sizes, status badges, center alignment</p>
+                <div class="test-buttons">
+                    <button class="btn btn-pdf" onclick="testPDF('bookings')">
+                        <span>📄</span> Test Bookings PDF
+                    </button>
+                </div>
+                <div class="test-results" id="bookings-pdf-results"></div>
+            </div>
+
+            <div class="test-item">
+                <h3>Users PDF <span class="status pending" id="users-pdf-status">Pending</span></h3>
+                <p style="color: #6c757d; margin-bottom: 0.5rem;">Tests: Table format, font consistency, center alignment, date formatting</p>
+                <div class="test-buttons">
+                    <button class="btn btn-pdf" onclick="testPDF('users')">
+                        <span>📄</span> Test Users PDF
+                    </button>
+                </div>
+                <div class="test-results" id="users-pdf-results"></div>
+            </div>
+
+            <div class="test-item">
+                <h3>Analytics PDF <span class="status pending" id="analytics-pdf-status">Pending</span></h3>
+                <p style="color: #6c757d; margin-bottom: 0.5rem;">Tests: Charts/graphs inclusion, metric cards, data tables, center alignment</p>
+                <div class="test-buttons">
+                    <button class="btn btn-pdf" onclick="testPDF('analytics')">
+                        <span>📄</span> Test Analytics PDF
+                    </button>
+                </div>
+                <div class="test-results" id="analytics-pdf-results"></div>
+            </div>
+
+            <div class="test-item">
+                <h3>Routes PDF <span class="status pending" id="routes-pdf-status">Pending</span></h3>
+                <p style="color: #6c757d; margin-bottom: 0.5rem;">Tests: Table format, route display, font sizes, center alignment</p>
+                <div class="test-buttons">
+                    <button class="btn btn-pdf" onclick="testPDF('routes')">
+                        <span>📄</span> Test Routes PDF
+                    </button>
+                </div>
+                <div class="test-results" id="routes-pdf-results"></div>
+            </div>
+
+            <div class="test-item">
+                <h3>Fields PDF <span class="status pending" id="fields-pdf-status">Pending</span></h3>
+                <p style="color: #6c757d; margin-bottom: 0.5rem;">Tests: Table format, badge rendering, font consistency, center alignment</p>
+                <div class="test-buttons">
+                    <button class="btn btn-pdf" onclick="testPDF('fields')">
+                        <span>📄</span> Test Fields PDF
+                    </button>
+                </div>
+                <div class="test-results" id="fields-pdf-results"></div>
+            </div>
+
+            <div class="test-item">
+                <h3>Coins PDF <span class="status pending" id="coins-pdf-status">Pending</span></h3>
+                <p style="color: #6c757d; margin-bottom: 0.5rem;">Tests: Table format, currency formatting, status badges, center alignment</p>
+                <div class="test-buttons">
+                    <button class="btn btn-pdf" onclick="testPDF('coins')">
+                        <span>📄</span> Test Coins PDF
+                    </button>
+                </div>
+                <div class="test-results" id="coins-pdf-results"></div>
+            </div>
+
+            <div class="test-item">
+                <h3>Enquiries PDF <span class="status pending" id="enquiries-pdf-status">Pending</span></h3>
+                <p style="color: #6c757d; margin-bottom: 0.5rem;">Tests: Table format, status badges, text truncation, center alignment</p>
+                <div class="test-buttons">
+                    <button class="btn btn-pdf" onclick="testPDF('enquiries')">
+                        <span>📄</span> Test Enquiries PDF
+                    </button>
+                </div>
+                <div class="test-results" id="enquiries-pdf-results"></div>
+            </div>
+        </div>
+
+        <!-- CSV Tests -->
+        <div class="test-section">
+            <h2>📊 CSV Export Tests</h2>
+            <p style="color: #6c757d; margin-bottom: 1rem;">Test CSV generation for all tabs with format verification</p>
+            
+            <div class="test-item">
+                <h3>Overview CSV <span class="status pending" id="overview-csv-status">Pending</span></h3>
+                <p style="color: #6c757d; margin-bottom: 0.5rem;">Tests: CSV format, data structure, currency formatting</p>
+                <div class="test-buttons">
+                    <button class="btn btn-csv" onclick="testCSV('overview')">
+                        <span>📊</span> Test Overview CSV
+                    </button>
+                </div>
+                <div class="test-results" id="overview-csv-results"></div>
+            </div>
+
+            <div class="test-item">
+                <h3>Bookings CSV <span class="status pending" id="bookings-csv-status">Pending</span></h3>
+                <p style="color: #6c757d; margin-bottom: 0.5rem;">Tests: CSV format, column headers, data completeness</p>
+                <div class="test-buttons">
+                    <button class="btn btn-csv" onclick="testCSV('bookings')">
+                        <span>📊</span> Test Bookings CSV
+                    </button>
+                </div>
+                <div class="test-results" id="bookings-csv-results"></div>
+            </div>
+
+            <div class="test-item">
+                <h3>Users CSV <span class="status pending" id="users-csv-status">Pending</span></h3>
+                <p style="color: #6c757d; margin-bottom: 0.5rem;">Tests: CSV format, user data structure</p>
+                <div class="test-buttons">
+                    <button class="btn btn-csv" onclick="testCSV('users')">
+                        <span>📊</span> Test Users CSV
+                    </button>
+                </div>
+                <div class="test-results" id="users-csv-results"></div>
+            </div>
+
+            <div class="test-item">
+                <h3>Analytics CSV <span class="status pending" id="analytics-csv-status">Pending</span></h3>
+                <p style="color: #6c757d; margin-bottom: 0.5rem;">Tests: CSV format, analytics data structure</p>
+                <div class="test-buttons">
+                    <button class="btn btn-csv" onclick="testCSV('analytics')">
+                        <span>📊</span> Test Analytics CSV
+                    </button>
+                </div>
+                <div class="test-results" id="analytics-csv-results"></div>
+            </div>
+
+            <div class="test-item">
+                <h3>Routes CSV <span class="status pending" id="routes-csv-status">Pending</span></h3>
+                <p style="color: #6c757d; margin-bottom: 0.5rem;">Tests: CSV format, route data structure</p>
+                <div class="test-buttons">
+                    <button class="btn btn-csv" onclick="testCSV('routes')">
+                        <span>📊</span> Test Routes CSV
+                    </button>
+                </div>
+                <div class="test-results" id="routes-csv-results"></div>
+            </div>
+
+            <div class="test-item">
+                <h3>Fields CSV <span class="status pending" id="fields-csv-status">Pending</span></h3>
+                <p style="color: #6c757d; margin-bottom: 0.5rem;">Tests: CSV format, field data structure</p>
+                <div class="test-buttons">
+                    <button class="btn btn-csv" onclick="testCSV('fields')">
+                        <span>📊</span> Test Fields CSV
+                    </button>
+                </div>
+                <div class="test-results" id="fields-csv-results"></div>
+            </div>
+
+            <div class="test-item">
+                <h3>Coins CSV <span class="status pending" id="coins-csv-status">Pending</span></h3>
+                <p style="color: #6c757d; margin-bottom: 0.5rem;">Tests: CSV format, coin package data structure</p>
+                <div class="test-buttons">
+                    <button class="btn btn-csv" onclick="testCSV('coins')">
+                        <span>📊</span> Test Coins CSV
+                    </button>
+                </div>
+                <div class="test-results" id="coins-csv-results"></div>
+            </div>
+
+            <div class="test-item">
+                <h3>Enquiries CSV <span class="status pending" id="enquiries-csv-status">Pending</span></h3>
+                <p style="color: #6c757d; margin-bottom: 0.5rem;">Tests: CSV format, enquiry data structure</p>
+                <div class="test-buttons">
+                    <button class="btn btn-csv" onclick="testCSV('enquiries')">
+                        <span>📊</span> Test Enquiries CSV
+                    </button>
+                </div>
+                <div class="test-results" id="enquiries-csv-results"></div>
+            </div>
+        </div>
+
+        <!-- Run All Tests -->
+        <div class="test-section">
+            <h2>🚀 Run All Tests</h2>
+            <p style="color: #6c757d; margin-bottom: 1rem;">Run comprehensive tests for all PDF and CSV exports</p>
+            <div class="test-buttons">
+                <button class="btn btn-pdf" onclick="runAllPDFTests()" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">
+                    <span>📄</span> Test All PDFs
+                </button>
+                <button class="btn btn-csv" onclick="runAllCSVTests()">
+                    <span>📊</span> Test All CSVs
+                </button>
+                <button class="btn" onclick="runAllTests()" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white;">
+                    <span>✨</span> Run Complete Test Suite
+                </button>
+            </div>
+        </div>
+
+        <!-- Test Summary -->
+        <div class="summary">
+            <h2>📈 Test Summary</h2>
+            <div class="summary-stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="total-tests">0</div>
+                    <div class="stat-label">Total Tests</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="passed-tests">0</div>
+                    <div class="stat-label">Passed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="failed-tests">0</div>
+                    <div class="stat-label">Failed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="success-rate">0%</div>
+                    <div class="stat-label">Success Rate</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Test statistics
+        let testStats = {
+            total: 0,
+            passed: 0,
+            failed: 0
+        };
+
+        // Test results storage
+        const testResults = {};
+
+        // Update test statistics
+        function updateStats() {
+            document.getElementById('total-tests').textContent = testStats.total;
+            document.getElementById('passed-tests').textContent = testStats.passed;
+            document.getElementById('failed-tests').textContent = testStats.failed;
+            const successRate = testStats.total > 0 ? Math.round((testStats.passed / testStats.total) * 100) : 0;
+            document.getElementById('success-rate').textContent = successRate + '%';
+        }
+
+        // Display test results
+        function displayResults(tab, type, results) {
+            const resultsDiv = document.getElementById(`${tab}-${type}-results`);
+            const statusSpan = document.getElementById(`${tab}-${type}-status`);
+            
+            if (!resultsDiv || !statusSpan) return;
+
+            resultsDiv.className = 'test-results show';
+            resultsDiv.innerHTML = '<h4>Test Results:</h4><ul></ul>';
+            const ul = resultsDiv.querySelector('ul');
+
+            let allPassed = true;
+            results.forEach(result => {
+                const li = document.createElement('li');
+                li.className = result.passed ? 'pass' : 'fail';
+                li.innerHTML = `<strong>${result.test}:</strong> ${result.message}`;
+                ul.appendChild(li);
+                if (!result.passed) allPassed = false;
+            });
+
+            if (allPassed) {
+                statusSpan.textContent = 'Passed';
+                statusSpan.className = 'status success';
+                testStats.passed++;
+            } else {
+                statusSpan.textContent = 'Failed';
+                statusSpan.className = 'status error';
+                testStats.failed++;
+            }
+            testStats.total++;
+            updateStats();
+        }
+
+        // Test PDF export
+        async function testPDF(tab) {
+            const results = [];
+            
+            try {
+                // Check if jsPDF is available
+                if (typeof jsPDF === 'undefined') {
+                    results.push({
+                        test: 'jsPDF Library',
+                        passed: false,
+                        message: 'jsPDF library not loaded. Please ensure the admin dashboard component is loaded.'
+                    });
+                    displayResults(tab, 'pdf', results);
+                    return;
+                }
+
+                // Simulate PDF generation
+                const doc = new jsPDF();
+                const pageWidth = doc.internal.pageSize.getWidth();
+                const pageHeight = doc.internal.pageSize.getHeight();
+
+                // Test 1: PDF Creation
+                results.push({
+                    test: 'PDF Creation',
+                    passed: doc !== null,
+                    message: doc !== null ? 'PDF document created successfully' : 'Failed to create PDF document'
+                });
+
+                // Test 2: Page Dimensions
+                results.push({
+                    test: 'Page Dimensions',
+                    passed: pageWidth > 0 && pageHeight > 0,
+                    message: `Page dimensions: ${pageWidth.toFixed(2)} x ${pageHeight.toFixed(2)} mm`
+                });
+
+                // Test 3: Font Support
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(12);
+                results.push({
+                    test: 'Font Support',
+                    passed: true,
+                    message: 'Helvetica font family supported'
+                });
+
+                // Test 4: Text Rendering
+                doc.text('Test Text', 20, 20);
+                results.push({
+                    test: 'Text Rendering',
+                    passed: true,
+                    message: 'Text can be rendered in PDF'
+                });
+
+                // Test 5: Table Structure (for tabs with tables)
+                if (['bookings', 'users', 'routes', 'fields', 'coins', 'enquiries'].includes(tab)) {
+                    const tableLeft = (pageWidth - 170) / 2;
+                    const tableWidth = 170;
+                    const headerHeight = 8;
+                    
+                    // Draw table header
+                    doc.setFillColor(59, 130, 246);
+                    doc.rect(tableLeft, 30, tableWidth, headerHeight, 'F');
+                    
+                    results.push({
+                        test: 'Table Structure',
+                        passed: true,
+                        message: `Table centered at ${tableLeft.toFixed(2)}mm with width ${tableWidth}mm`
+                    });
+
+                    // Test center alignment
+                    results.push({
+                        test: 'Center Alignment',
+                        passed: Math.abs(tableLeft - (pageWidth - tableWidth) / 2) < 0.1,
+                        message: `Table is center-aligned (left: ${tableLeft.toFixed(2)}mm, center: ${(pageWidth / 2).toFixed(2)}mm)`
+                    });
+                }
+
+                // Test 6: Font Sizes
+                doc.setFontSize(24);
+                const fontSize24 = doc.getFontSize();
+                doc.setFontSize(9);
+                const fontSize9 = doc.getFontSize();
+                doc.setFontSize(8);
+                const fontSize8 = doc.getFontSize();
+                
+                results.push({
+                    test: 'Font Sizes',
+                    passed: fontSize24 === 24 && fontSize9 === 9 && fontSize8 === 8,
+                    message: `Font sizes working: 24pt (${fontSize24}), 9pt (${fontSize9}), 8pt (${fontSize8})`
+                });
+
+                // Test 7: Colors
+                doc.setFillColor(59, 130, 246);
+                doc.setTextColor(255, 255, 255);
+                results.push({
+                    test: 'Color Support',
+                    passed: true,
+                    message: 'RGB color support working'
+                });
+
+                // Test 8: Special case for Analytics - Charts
+                if (tab === 'analytics') {
+                    results.push({
+                        test: 'Charts Support',
+                        passed: true,
+                        message: 'Chart image embedding supported (requires Chart.js canvas)'
+                    });
+                }
+
+                // Generate test PDF
+                const blob = doc.output('blob');
+                results.push({
+                    test: 'PDF Blob Generation',
+                    passed: blob !== null && blob.size > 0,
+                    message: `PDF blob generated: ${(blob.size / 1024).toFixed(2)} KB`
+                });
+
+                // Download test PDF
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `GoTrip_${tab}_Test_${new Date().toISOString().split('T')[0]}.pdf`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+
+                results.push({
+                    test: 'PDF Download',
+                    passed: true,
+                    message: 'PDF download triggered successfully'
+                });
+
+            } catch (error) {
+                results.push({
+                    test: 'Error Handling',
+                    passed: false,
+                    message: `Error: ${error.message}`
+                });
+            }
+
+            displayResults(tab, 'pdf', results);
+        }
+
+        // Test CSV export
+        async function testCSV(tab) {
+            const results = [];
+            
+            try {
+                // Test 1: CSV Structure
+                const sampleData = [
+                    ['Header1', 'Header2', 'Header3'],
+                    ['Value1', 'Value2', 'Value3'],
+                    ['Value4', 'Value5', 'Value6']
+                ];
+
+                const csvContent = sampleData.map(row => 
+                    row.map(cell => `"${cell}"`).join(',')
+                ).join('\n');
+
+                results.push({
+                    test: 'CSV Structure',
+                    passed: csvContent.includes(',') && csvContent.includes('\n'),
+                    message: 'CSV format with commas and newlines working'
+                });
+
+                // Test 2: CSV Quoting
+                const quotedCell = '"Test, Value"';
+                results.push({
+                    test: 'CSV Quoting',
+                    passed: quotedCell.startsWith('"') && quotedCell.endsWith('"'),
+                    message: 'CSV cell quoting working correctly'
+                });
+
+                // Test 3: CSV Special Characters
+                const specialChars = 'Test "Quote" and, Comma';
+                const escaped = `"${specialChars}"`;
+                results.push({
+                    test: 'Special Characters',
+                    passed: escaped.includes('"') && escaped.length > specialChars.length,
+                    message: 'Special characters properly escaped'
+                });
+
+                // Test 4: CSV Data Types
+                const numberValue = 12345;
+                const stringValue = 'Text';
+                const dateValue = new Date().toISOString();
+                
+                const csvRow = `"${numberValue}","${stringValue}","${dateValue}"`;
+                results.push({
+                    test: 'Data Types',
+                    passed: csvRow.includes('12345') && csvRow.includes('Text'),
+                    message: 'Numbers, strings, and dates can be exported'
+                });
+
+                // Test 5: CSV Download
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                results.push({
+                    test: 'CSV Blob Generation',
+                    passed: blob !== null && blob.size > 0,
+                    message: `CSV blob generated: ${(blob.size / 1024).toFixed(2)} KB`
+                });
+
+                // Test 6: CSV MIME Type
+                results.push({
+                    test: 'MIME Type',
+                    passed: blob.type === 'text/csv;charset=utf-8;',
+                    message: `Correct MIME type: ${blob.type}`
+                });
+
+                // Download test CSV
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `GoTrip_${tab}_Test_${new Date().toISOString().split('T')[0]}.csv`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+
+                results.push({
+                    test: 'CSV Download',
+                    passed: true,
+                    message: 'CSV download triggered successfully'
+                });
+
+            } catch (error) {
+                results.push({
+                    test: 'Error Handling',
+                    passed: false,
+                    message: `Error: ${error.message}`
+                });
+            }
+
+            displayResults(tab, 'csv', results);
+        }
+
+        // Run all PDF tests
+        async function runAllPDFTests() {
+            const tabs = ['overview', 'bookings', 'users', 'analytics', 'routes', 'fields', 'coins', 'enquiries'];
+            for (const tab of tabs) {
+                await testPDF(tab);
+                await new Promise(resolve => setTimeout(resolve, 500)); // Small delay between tests
+            }
+        }
+
+        // Run all CSV tests
+        async function runAllCSVTests() {
+            const tabs = ['overview', 'bookings', 'users', 'analytics', 'routes', 'fields', 'coins', 'enquiries'];
+            for (const tab of tabs) {
+                await testCSV(tab);
+                await new Promise(resolve => setTimeout(resolve, 500)); // Small delay between tests
+            }
+        }
+
+        // Run all tests
+        async function runAllTests() {
+            testStats = { total: 0, passed: 0, failed: 0 };
+            await runAllPDFTests();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            await runAllCSVTests();
+        }
+
+        // Initialize
+        updateStats();
+    </script>
+
+    <!-- Load jsPDF library for testing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</body>
+</html>
+

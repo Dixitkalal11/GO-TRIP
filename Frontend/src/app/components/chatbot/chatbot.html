@@ -1,0 +1,178 @@
+<!-- Floating Chat Button -->
+<button class="chatbot-toggle" (click)="toggleChat()" [class.active]="isOpen">
+  <i class="bi" [ngClass]="isOpen ? 'bi-x-lg' : 'bi-chat-dots-fill'"></i>
+  <span class="chatbot-pulse" *ngIf="!isOpen"></span>
+</button>
+
+<!-- Chat Widget -->
+<div class="chatbot-widget" [class.open]="isOpen">
+  <div class="chatbot-header">
+    <div class="chatbot-header-info">
+      <div class="chatbot-avatar">
+        <i class="bi bi-robot"></i>
+      </div>
+      <div>
+        <h4>GoTrip AI Assistant</h4>
+        <span class="chatbot-status">Online</span>
+      </div>
+    </div>
+    <button class="chatbot-minimize" (click)="toggleChat()">
+      <i class="bi bi-dash-lg"></i>
+    </button>
+  </div>
+
+  <div class="chatbot-messages" #chatMessages>
+    <!-- Quick Action Buttons -->
+    <div class="quick-actions" *ngIf="showQuickActions && messages.length <= 1">
+      <div class="quick-actions-title">Quick Actions:</div>
+      <div class="quick-actions-grid">
+        <button 
+          *ngFor="let action of quickActions" 
+          class="quick-action-btn"
+          (click)="handleQuickAction(action.action)">
+          <i class="bi" [ngClass]="action.icon"></i>
+          <span>{{ action.label }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    <div 
+      *ngFor="let msg of messages; let i = index" 
+      class="message" 
+      [class.user]="msg.sender === 'user'"
+      [class.bot]="msg.sender === 'bot'"
+      [class.card]="msg.type === 'card' || msg.type === 'booking'"
+    >
+      <!-- Text Message -->
+      <div class="message-content" *ngIf="msg.type !== 'card' && msg.type !== 'booking'">
+        <p [innerHTML]="formatMessageText(msg.text)"></p>
+        <span class="message-time">{{ msg.timestamp | date:'HH:mm' }}</span>
+      </div>
+
+      <!-- Card/Booking Message -->
+      <div class="message-card" *ngIf="msg.type === 'card' || msg.type === 'booking'">
+        <div class="card-content">
+          <p>{{ msg.text }}</p>
+        </div>
+        <div class="card-actions" *ngIf="msg.actions && msg.actions.length > 0">
+          <button 
+            *ngFor="let action of msg.actions" 
+            class="card-action-btn"
+            (click)="handleAction(action)">
+            {{ action.label }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Suggestions -->
+      <div class="message-suggestions" *ngIf="msg.suggestions && msg.suggestions.length > 0">
+        <div class="suggestions-title">You might ask:</div>
+        <div class="suggestions-list">
+          <button 
+            *ngFor="let suggestion of msg.suggestions" 
+            class="suggestion-btn"
+            (click)="sendSuggestion(suggestion)">
+            {{ suggestion }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="message-actions" *ngIf="msg.actions && msg.actions.length > 0 && msg.type !== 'card'">
+        <button 
+          *ngFor="let action of msg.actions" 
+          class="message-action-btn"
+          (click)="handleAction(action)">
+          <i class="bi" [ngClass]="action.type === 'link' ? 'bi-arrow-right-circle' : 'bi-cursor'"></i>
+          {{ action.label }}
+        </button>
+      </div>
+
+      <!-- Feedback/Rating -->
+      <div class="message-feedback" *ngIf="msg.showFeedback && msg.sender === 'bot'">
+        <span class="feedback-label">Helpful?</span>
+        <div class="feedback-buttons">
+          <button 
+            class="feedback-btn" 
+            [class.active]="msg.rating === 1"
+            (click)="rateMessage(i, 1)"
+            title="Helpful">
+            <i class="bi bi-hand-thumbs-up"></i>
+          </button>
+          <button 
+            class="feedback-btn" 
+            [class.active]="msg.rating === -1"
+            (click)="rateMessage(i, -1)"
+            title="Not Helpful">
+            <i class="bi bi-hand-thumbs-down"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Typing Indicator -->
+    <div *ngIf="isLoading" class="message bot">
+      <div class="message-content">
+        <div class="typing-indicator">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Input Area -->
+  <div class="chatbot-input">
+    <!-- File Upload -->
+    <label class="file-upload-btn" title="Upload file/image">
+      <input 
+        type="file" 
+        accept="image/*,.pdf,.doc,.docx"
+        (change)="handleFileInput($event)"
+        style="display: none;">
+      <i class="bi bi-paperclip"></i>
+    </label>
+
+    <textarea 
+      [(ngModel)]="userMessage" 
+      placeholder="Type your message..."
+      (keydown)="handleKeyPress($event)"
+      [disabled]="isLoading || isRecording"
+      rows="1"
+      class="chat-input-textarea"
+    ></textarea>
+
+    <!-- Voice Input -->
+    <button 
+      class="voice-btn" 
+      [class.recording]="isRecording"
+      (click)="toggleVoiceInput()"
+      title="Voice input">
+      <i class="bi" [ngClass]="isRecording ? 'bi-stop-circle-fill' : 'bi-mic-fill'"></i>
+    </button>
+
+    <!-- Send Button -->
+    <button 
+      class="send-btn" 
+      (click)="sendMessage()" 
+      [disabled]="!userMessage.trim() || isLoading || isRecording"
+      title="Send message">
+      <i class="bi bi-send-fill"></i>
+    </button>
+  </div>
+
+  <!-- Common Questions Footer -->
+  <div class="chatbot-footer" *ngIf="showSuggestions && messages.length <= 2">
+    <div class="footer-title">Common Questions:</div>
+    <div class="footer-suggestions">
+      <button 
+        *ngFor="let question of commonQuestions.slice(0, 3)" 
+        class="footer-suggestion-btn"
+        (click)="sendSuggestion(question)">
+        {{ question }}
+      </button>
+    </div>
+  </div>
+</div>

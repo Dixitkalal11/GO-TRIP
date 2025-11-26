@@ -1,0 +1,204 @@
+<div class="packages-page">
+  <!-- Page Header -->
+  <div class="packages-header">
+    <div class="container">
+      <h1 class="page-title">Travel Packages</h1>
+      <p class="page-subtitle">Discover amazing deals on bus, train, and flight packages</p>
+    </div>
+  </div>
+
+  <!-- Filters and Search Section -->
+  <div class="container">
+    <div class="filters-section">
+      <!-- Type Filter -->
+      <div class="type-filters">
+        <button
+          class="filter-btn"
+          [class.active]="selectedType === 'all'"
+          (click)="filterByType('all')">
+          <i class="bi bi-grid"></i> All Packages
+        </button>
+        <button
+          class="filter-btn"
+          [class.active]="selectedType === 'bus'"
+          (click)="filterByType('bus')">
+          <i class="bi bi-bus-front"></i> Bus
+        </button>
+        <button
+          class="filter-btn"
+          [class.active]="selectedType === 'train'"
+          (click)="filterByType('train')">
+          <i class="bi bi-train-front"></i> Train
+        </button>
+        <button
+          class="filter-btn"
+          [class.active]="selectedType === 'flight'"
+          (click)="filterByType('flight')">
+          <i class="bi bi-airplane"></i> Flight
+        </button>
+        <button
+          class="filter-btn"
+          [class.active]="selectedType === 'tour'"
+          (click)="filterByType('tour')">
+          <i class="bi bi-camera"></i> Tours
+        </button>
+      </div>
+
+      <!-- Search and Sort -->
+      <div class="search-sort-section">
+        <div class="search-box">
+          <i class="bi bi-search"></i>
+          <input
+            type="text"
+            placeholder="Search by city, route, or operator..."
+            [(ngModel)]="searchQuery"
+            (input)="onSearch()">
+        </div>
+        <select class="sort-select" [(ngModel)]="sortBy" (change)="onSortChange()">
+          <option value="rating">Rating: Highest</option>
+          <option value="price-low">Price: Low to High</option>
+          <option value="price-high">Price: High to Low</option>
+          <option value="duration">Duration: Shortest</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Packages Grid -->
+    <div class="packages-grid">
+      <div
+        *ngFor="let pkg of filteredPackages"
+        class="package-card"
+        [class.popular]="pkg.isPopular"
+        [class.special]="pkg.isSpecial">
+
+        <!-- Image/Header Section -->
+        <div class="package-image-section" [ngStyle]="{'background-image': 'url(' + (pkg.image || getDefaultImage(pkg.type)) + ')'}">
+          <!-- Image Overlay -->
+          <div class="image-overlay"></div>
+
+          <!-- Route Text Overlay -->
+          <div class="route-overlay-text">
+            <div class="route-text-from">{{ pkg.fromCity }}</div>
+            <div class="route-text-arrow">→</div>
+            <div class="route-text-to">{{ pkg.toCity }}</div>
+          </div>
+
+          <!-- Days Badge for Tours -->
+          <div class="days-badge" *ngIf="pkg.type === 'tour'">
+            <i class="bi bi-calendar-check"></i>
+            <span>{{ pkg.duration }}</span>
+          </div>
+
+          <!-- Badge -->
+          <div class="package-badges">
+            <span class="badge badge-type" [class.bus]="pkg.type === 'bus'" [class.train]="pkg.type === 'train'" [class.flight]="pkg.type === 'flight'" [class.tour]="pkg.type === 'tour'">
+              {{ pkg.type | titlecase }}
+            </span>
+            <span class="badge badge-popular" *ngIf="pkg.isPopular">⭐ Popular</span>
+            <span class="badge badge-special" *ngIf="pkg.isSpecial">🔥 Special Deal</span>
+            <span class="badge badge-discount" *ngIf="pkg.originalPrice">
+              {{ getDiscountPercentage(pkg) }}% OFF
+            </span>
+          </div>
+        </div>
+
+        <!-- Package Content -->
+        <div class="package-content">
+          <!-- Package Header -->
+          <div class="package-header">
+            <h3 class="package-title">{{ pkg.title }}</h3>
+            <div class="package-rating" *ngIf="pkg.rating">
+              <i class="bi bi-star-fill"></i>
+              <span>{{ pkg.rating }}</span>
+              <span class="reviews">({{ pkg.reviews }})</span>
+            </div>
+          </div>
+
+          <!-- Route Info -->
+          <div class="package-route">
+            <div class="route-cities">
+              <div class="city">
+                <i class="bi bi-geo-alt-fill"></i>
+                <span class="city-name">{{ pkg.fromCity }}</span>
+              </div>
+              <div class="route-arrow">
+                <i class="bi bi-arrow-right"></i>
+              </div>
+              <div class="city">
+                <i class="bi bi-geo-alt-fill"></i>
+                <span class="city-name">{{ pkg.toCity }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Package Details -->
+          <div class="package-details">
+            <div class="detail-item" *ngIf="pkg.type !== 'tour'">
+              <i class="bi bi-clock"></i>
+              <span>{{ pkg.duration }}</span>
+            </div>
+            <div class="detail-item" *ngIf="pkg.type === 'tour'">
+              <i class="bi bi-calendar-check"></i>
+              <span><strong>{{ pkg.duration }}</strong> Tour</span>
+            </div>
+            <div class="detail-item">
+              <i class="bi bi-building"></i>
+              <span>{{ pkg.operator }}</span>
+            </div>
+            <div class="detail-item" *ngIf="pkg.class">
+              <i class="bi bi-ticket-perforated"></i>
+              <span>{{ pkg.class }}</span>
+            </div>
+            <div class="detail-item">
+              <i class="bi bi-clock-history"></i>
+              <span>{{ pkg.departureTime }}<span *ngIf="pkg.type !== 'tour'"> - {{ pkg.arrivalTime }}</span></span>
+            </div>
+          </div>
+
+          <!-- Amenities -->
+          <div class="package-amenities">
+            <div class="amenities-label">Amenities</div>
+            <div class="amenities-list">
+              <span class="amenity-tag" *ngFor="let amenity of pkg.amenities.slice(0, 4)">
+                <i class="bi bi-check-circle"></i> {{ amenity }}
+              </span>
+              <span class="amenity-more" *ngIf="pkg.amenities.length > 4">
+                +{{ pkg.amenities.length - 4 }} more
+              </span>
+            </div>
+          </div>
+
+          <!-- Price Section -->
+          <div class="package-price">
+            <div class="price-info">
+              <div class="current-price">
+                <span class="currency">₹</span>
+                <span class="amount">{{ pkg.price }}</span>
+              </div>
+              <div class="original-price" *ngIf="pkg.originalPrice">
+                <span class="strikethrough">₹{{ pkg.originalPrice }}</span>
+              </div>
+            </div>
+            <div class="seats-left" *ngIf="pkg.seatsLeft !== undefined">
+              <i class="bi bi-exclamation-triangle"></i>
+              <span>Only {{ pkg.seatsLeft }} left</span>
+            </div>
+          </div>
+
+          <!-- Action Button -->
+          <button class="btn-book" (click)="bookPackage(pkg)">
+            <i class="bi bi-calendar-check"></i>
+            Book Now
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- No Results -->
+    <div class="no-results" *ngIf="filteredPackages.length === 0">
+      <i class="bi bi-inbox"></i>
+      <h3>No packages found</h3>
+      <p>Try adjusting your filters or search query</p>
+    </div>
+  </div>
+</div>

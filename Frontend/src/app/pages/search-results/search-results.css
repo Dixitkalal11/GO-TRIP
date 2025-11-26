@@ -1,0 +1,277 @@
+/* Search Results Page Styles */
+.search-results-container {
+  background-color: #f8f9fa;
+  min-height: 100vh;
+  padding: 20px 0;
+}
+
+/* Header */
+.search-header {
+  background-color: white;
+  padding: 15px 0;
+  border-bottom: 1px solid #e9ecef;
+  margin-bottom: 20px;
+}
+
+.modify-search-link {
+  color: #007bff;
+  text-decoration: none;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.modify-search-link:hover {
+  color: #0056b3;
+  text-decoration: none;
+}
+
+.route-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  color: #333;
+}
+
+.from-city, .to-city {
+  font-size: 18px;
+}
+
+/* Results Count */
+.results-count {
+  margin-bottom: 30px;
+}
+
+.results-count h2 {
+  color: #333;
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* Transport Options */
+.transport-options {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.transport-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border: 1px solid #e9ecef;
+}
+
+/* Transport Header */
+.transport-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.operator-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.operator-info i {
+  color: #007bff;
+  font-size: 18px;
+}
+
+.operator-name {
+  font-weight: 600;
+  font-size: 18px;
+  color: #333;
+}
+
+.transport-type {
+  background-color: #f8f9fa;
+  color: #666;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  margin-left: 10px;
+}
+
+.transport-number {
+  background-color: #e3f2fd;
+  color: #1976d2;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-left: 8px;
+}
+
+.rating {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #666;
+}
+
+.rating i {
+  color: #ffc107;
+  font-size: 16px;
+}
+
+.rating span {
+  font-weight: 500;
+}
+
+.reviews {
+  color: #999;
+  font-size: 14px;
+}
+
+/* Transport Timings */
+.transport-timings {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding: 15px 0;
+}
+
+.departure, .arrival {
+  text-align: center;
+  flex: 1;
+}
+
+.time {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.city {
+  font-size: 14px;
+  color: #666;
+}
+
+.duration-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 2;
+  margin: 0 20px;
+}
+
+.line {
+  height: 2px;
+  background-color: #007bff;
+  flex: 1;
+}
+
+.duration {
+  background-color: #007bff;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Amenities */
+.transport-amenities {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.amenity {
+  background-color: #f8f9fa;
+  color: #666;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  border: 1px solid #e9ecef;
+}
+
+/* Transport Footer */
+.transport-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.availability {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #28a745;
+  font-weight: 500;
+}
+
+.availability i {
+  color: #ffc107;
+}
+
+.price-section {
+  text-align: center;
+  flex: 1;
+  margin: 0 20px;
+}
+
+.price {
+  font-size: 24px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 2px;
+}
+
+.price-label {
+  font-size: 12px;
+  color: #666;
+}
+
+.select-btn {
+  background: linear-gradient(135deg, #007bff, #ff6b35);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s;
+  min-width: 100px;
+}
+
+.select-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,123,255,0.3);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .transport-timings {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .duration-line {
+    margin: 0;
+    order: 2;
+  }
+  
+  .transport-footer {
+    flex-direction: column;
+    gap: 15px;
+    align-items: stretch;
+  }
+  
+  .price-section {
+    margin: 0;
+  }
+}

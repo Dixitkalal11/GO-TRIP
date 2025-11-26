@@ -1,0 +1,2328 @@
+<!-- Admin Dashboard Header -->
+<div class="admin-header">
+  <div class="header-content">
+    <div class="header-left">
+      <h1 class="dashboard-title">
+        <i class="bi bi-speedometer2"></i>
+        Admin Dashboard
+      </h1>
+      <p class="dashboard-subtitle">Welcome back, Administrator!</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-refresh" (click)="refreshData()" [disabled]="loading">
+        <i class="bi bi-arrow-clockwise" [class.spinning]="loading"></i>
+        Refresh
+      </button>
+      <button class="btn btn-home" (click)="goToHome()">
+        <i class="bi bi-house"></i>
+        Go to Home
+      </button>
+      <button class="btn btn-logout" (click)="logout()">
+        <i class="bi bi-box-arrow-right"></i>
+        Logout
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Error Message -->
+<div class="error-message" *ngIf="error">
+  <i class="bi bi-exclamation-triangle"></i>
+  {{ error }}
+  <button class="btn btn-sm btn-outline-light ms-2" (click)="refreshData()">Retry</button>
+</div>
+
+<!-- Loading Spinner -->
+<div class="loading-overlay" *ngIf="loading">
+  <div class="spinner-border text-primary" role="status">
+    <span class="visually-hidden">Loading...</span>
+  </div>
+  <p>Loading dashboard data...</p>
+</div>
+
+<!-- Navigation Tabs -->
+<div class="admin-nav">
+  <div class="nav-tabs">
+    <button 
+      class="nav-tab" 
+      [class.active]="activeTab === 'overview'"
+      (click)="switchTab('overview')">
+      <i class="bi bi-speedometer2"></i>
+      Overview
+    </button>
+    <button 
+      class="nav-tab" 
+      [class.active]="activeTab === 'bookings'"
+      (click)="switchTab('bookings')">
+      <i class="bi bi-ticket-perforated"></i>
+      Bookings
+      <span class="badge">{{ bookings.length }}</span>
+    </button>
+    <button 
+      class="nav-tab" 
+      [class.active]="activeTab === 'users'"
+      (click)="switchTab('users')">
+      <i class="bi bi-people"></i>
+      Users
+      <span class="badge">{{ users.length }}</span>
+    </button>
+    <button 
+      class="nav-tab" 
+      [class.active]="activeTab === 'analytics'"
+      (click)="switchTab('analytics')">
+      <i class="bi bi-graph-up"></i>
+      Analytics
+    </button>
+    <button 
+      class="nav-tab" 
+          [class.active]="activeTab === 'routes'"
+          (click)="switchTab('routes')">
+          <i class="bi bi-map"></i>
+          Routes
+          <span class="badge">{{ routes.length }}</span>
+        </button>
+        
+        <button 
+          class="nav-tab" 
+          [class.active]="activeTab === 'fields'"
+          (click)="switchTab('fields')">
+          <i class="bi bi-gear-fill"></i>
+          Field Management
+          <span class="badge">{{ getTotalFields() }}</span>
+        </button>
+        
+        <button 
+          class="nav-tab" 
+          [class.active]="activeTab === 'coins'"
+          (click)="switchTab('coins')">
+          <i class="bi bi-coin"></i>
+          Coin Management
+          <span class="badge">{{ getTotalCoins() }}</span>
+        </button>
+    <button 
+      class="nav-tab" 
+      [class.active]="activeTab === 'settings'"
+      (click)="switchTab('settings')">
+      <i class="bi bi-gear"></i>
+      Settings
+    </button>
+    <button 
+      class="nav-tab" 
+      [class.active]="activeTab === 'enquiries'"
+      (click)="switchTab('enquiries')">
+      <i class="bi bi-chat-dots"></i>
+      Enquiries
+    </button>
+  </div>
+</div>
+
+<!-- Dashboard Content -->
+<div class="dashboard-content" *ngIf="!loading">
+  
+  <!-- Overview Tab -->
+  <div class="tab-content" *ngIf="activeTab === 'overview'">
+    <div class="tab-header">
+      <h2 class="tab-title">
+        <i class="bi bi-speedometer2"></i>
+        Overview
+      </h2>
+      <div class="export-buttons">
+        <button class="btn btn-export btn-pdf" (click)="exportToPDF('overview')">
+          <i class="bi bi-file-earmark-pdf"></i>
+          Export PDF
+        </button>
+        <button class="btn btn-export btn-csv" (click)="exportToCSV('overview')">
+          <i class="bi bi-file-earmark-spreadsheet"></i>
+          Export CSV
+        </button>
+      </div>
+    </div>
+    
+    <!-- Key Metrics Cards -->
+    <div class="metrics-grid">
+      <div class="metric-card users">
+        <div class="metric-icon">
+          <i class="bi bi-people-fill"></i>
+        </div>
+        <div class="metric-content">
+          <h3>{{ stats.totalUsers }}</h3>
+          <p>Total Users</p>
+          <span class="metric-change positive">
+            <i class="bi bi-arrow-up"></i>
+            +12% this month
+          </span>
+        </div>
+      </div>
+      
+      <div class="metric-card bookings">
+        <div class="metric-icon">
+          <i class="bi bi-ticket-perforated-fill"></i>
+        </div>
+        <div class="metric-content">
+          <h3>{{ stats.totalBookings }}</h3>
+          <p>Total Bookings</p>
+          <span class="metric-change positive">
+            <i class="bi bi-arrow-up"></i>
+            +8% this month
+          </span>
+        </div>
+      </div>
+      
+      <div class="metric-card revenue">
+        <div class="metric-icon">
+          <i class="bi bi-currency-rupee"></i>
+        </div>
+        <div class="metric-content">
+          <h3>{{ formatCurrency(stats.totalRevenue) }}</h3>
+          <p>Total Revenue</p>
+          <span class="metric-change positive">
+            <i class="bi bi-arrow-up"></i>
+            +15% this month
+          </span>
+        </div>
+      </div>
+      
+      <div class="metric-card coins">
+        <div class="metric-icon">
+          <i class="bi bi-coin"></i>
+        </div>
+        <div class="metric-content">
+          <h3>{{ stats.totalCoins }}</h3>
+          <p>Total Coins</p>
+          <span class="metric-change neutral">
+            <i class="bi bi-dash"></i>
+            In circulation
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Revenue Analytics -->
+    <div class="analytics-section">
+      <h2 class="section-title">
+        <i class="bi bi-graph-up"></i>
+        Revenue Analytics
+      </h2>
+      
+      <div class="revenue-grid">
+        <div class="revenue-card monthly">
+          <div class="revenue-header">
+            <h4>Monthly Revenue</h4>
+            <i class="bi bi-calendar-month"></i>
+          </div>
+          <div class="revenue-amount">{{ formatCurrency(stats.monthlyRevenue) }}</div>
+          <div class="revenue-loss">Loss: {{ formatCurrency(stats.monthlyLoss) }}</div>
+          <div class="revenue-net">Net: {{ formatCurrency(stats.monthlyRevenue - stats.monthlyLoss) }}</div>
+        </div>
+        
+        <div class="revenue-card quarterly">
+          <div class="revenue-header">
+            <h4>Quarterly Revenue</h4>
+            <i class="bi bi-calendar3"></i>
+          </div>
+          <div class="revenue-amount">{{ formatCurrency(stats.quarterlyRevenue) }}</div>
+          <div class="revenue-loss">Loss: {{ formatCurrency(stats.quarterlyLoss) }}</div>
+          <div class="revenue-net">Net: {{ formatCurrency(stats.quarterlyRevenue - stats.quarterlyLoss) }}</div>
+        </div>
+        
+        <div class="revenue-card yearly">
+          <div class="revenue-header">
+            <h4>Yearly Revenue</h4>
+            <i class="bi bi-calendar-year"></i>
+          </div>
+          <div class="revenue-amount">{{ formatCurrency(stats.yearlyRevenue) }}</div>
+          <div class="revenue-loss">Loss: {{ formatCurrency(stats.yearlyLoss) }}</div>
+          <div class="revenue-net">Net: {{ formatCurrency(stats.yearlyRevenue - stats.yearlyLoss) }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="recent-activity">
+      <h2 class="section-title">
+        <i class="bi bi-clock-history"></i>
+        Recent Bookings
+      </h2>
+      
+      <div class="activity-list">
+        <div class="activity-item" *ngFor="let booking of bookings.slice(0, 5)">
+          <div class="activity-icon">
+            <i [class]="getTransportIcon(booking.travelMode)"></i>
+          </div>
+          <div class="activity-content">
+            <div class="activity-title">
+              {{ booking.userName }} booked {{ booking.travelMode }} ticket
+            </div>
+            <div class="activity-details">
+              {{ booking.fromCity }} → {{ booking.toCity }} • {{ formatCurrency(booking.price) }}
+            </div>
+            <div class="activity-time">{{ formatDate(booking.createdAt) }}</div>
+          </div>
+          <div class="activity-status">
+            <span [class]="'status-badge ' + getStatusClass(booking.status)">
+              {{ booking.status }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Routes -->
+    <div class="top-routes">
+      <h2 class="section-title">
+        <i class="bi bi-map"></i>
+        Top Routes
+      </h2>
+      
+      <div class="routes-list">
+        <div class="route-item" *ngFor="let route of getTopRoutes()">
+          <div class="route-name">{{ route.route }}</div>
+          <div class="route-count">{{ route.count }} bookings</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bookings Tab -->
+  <div class="tab-content" *ngIf="activeTab === 'bookings'">
+    <div class="tab-header">
+      <h2 class="tab-title">
+        <i class="bi bi-ticket-perforated"></i>
+        Bookings Management
+      </h2>
+      
+      <div class="header-actions-group">
+        <div class="export-buttons">
+          <button class="btn btn-export btn-pdf" (click)="exportToPDF('bookings')">
+            <i class="bi bi-file-earmark-pdf"></i>
+            Export PDF
+          </button>
+          <button class="btn btn-export btn-csv" (click)="exportToCSV('bookings')">
+            <i class="bi bi-file-earmark-spreadsheet"></i>
+            Export CSV
+          </button>
+        </div>
+        <div class="tab-filters">
+        <div class="filter-group">
+          <label>Status:</label>
+          <select [(ngModel)]="bookingStatusFilter" class="form-select">
+            <option value="all">All Status</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="pending">Pending</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </div>
+        
+        <div class="filter-group">
+          <label>Search:</label>
+          <input 
+            type="text" 
+            [(ngModel)]="bookingSearchTerm" 
+            placeholder="Search bookings..."
+            class="form-control">
+        </div>
+      </div>
+      </div>
+    </div>
+
+    <div class="bookings-table">
+      <div class="table-header">
+        <div class="table-cell">Booking ID</div>
+        <div class="table-cell">User</div>
+        <div class="table-cell">Route</div>
+        <div class="table-cell">Travel Mode</div>
+        <div class="table-cell">Date</div>
+        <div class="table-cell">Amount</div>
+        <div class="table-cell">Status</div>
+        <div class="table-cell">Actions</div>
+      </div>
+      
+      <div class="table-body">
+        <div class="table-row" *ngFor="let booking of paginatedBookings">
+          <div class="table-cell">
+            <strong>{{ booking.bookingId || 'GT-' + booking.id }}</strong>
+          </div>
+          <div class="table-cell">
+            <div class="user-info">
+              <div class="user-name">{{ booking.userName }}</div>
+              <div class="user-email">{{ booking.userEmail }}</div>
+            </div>
+          </div>
+          <div class="table-cell">
+            <div class="route-info">
+              <div class="route-cities">{{ booking.fromCity }} → {{ booking.toCity }}</div>
+              <div class="route-operator">{{ booking.operator }}</div>
+            </div>
+          </div>
+          <div class="table-cell">
+            <span class="travel-mode">
+              <i [class]="getTransportIcon(booking.travelMode)"></i>
+              {{ booking.travelMode }}
+            </span>
+          </div>
+          <div class="table-cell">{{ booking.travelDate }}</div>
+          <div class="table-cell">
+            <strong>{{ formatCurrency(booking.price) }}</strong>
+          </div>
+          <div class="table-cell">
+            <span [class]="'status-badge ' + getStatusClass(booking.status)">
+              {{ booking.status }}
+            </span>
+          </div>
+          <div class="table-cell">
+            <div class="action-buttons">
+              <button class="btn btn-sm btn-outline-primary" 
+                      (click)="updateBookingStatus(booking, 'confirmed')"
+                      *ngIf="booking.status !== 'confirmed'">
+                Confirm
+              </button>
+              <button class="btn btn-sm btn-outline-danger" 
+                      (click)="deleteBooking(booking)">
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination" *ngIf="totalBookingPages > 1">
+      <button class="btn btn-outline-primary" 
+              [disabled]="currentBookingPage === 1"
+              (click)="goToFirstBookingPage()">
+        First
+      </button>
+      <button class="btn btn-outline-primary" 
+              [disabled]="currentBookingPage === 1"
+              (click)="goToPreviousBookingPage()">
+        Previous
+      </button>
+      <span class="page-info">
+        Page {{ currentBookingPage }} of {{ totalBookingPages }}
+      </span>
+      <button class="btn btn-outline-primary" 
+              [disabled]="currentBookingPage === totalBookingPages"
+              (click)="goToNextBookingPage()">
+        Next
+      </button>
+      <button class="btn btn-outline-primary" 
+              [disabled]="currentBookingPage === totalBookingPages"
+              (click)="goToLastBookingPage()">
+        Last
+      </button>
+    </div>
+  </div>
+
+  <!-- Users Tab -->
+  <div class="tab-content" *ngIf="activeTab === 'users'">
+    <div class="tab-header">
+      <h2 class="tab-title">
+        <i class="bi bi-people"></i>
+        Users Management
+      </h2>
+      
+      <div class="header-actions-group">
+        <div class="export-buttons">
+          <button class="btn btn-export btn-pdf" (click)="exportToPDF('users')">
+            <i class="bi bi-file-earmark-pdf"></i>
+            Export PDF
+          </button>
+          <button class="btn btn-export btn-csv" (click)="exportToCSV('users')">
+            <i class="bi bi-file-earmark-spreadsheet"></i>
+            Export CSV
+          </button>
+        </div>
+        <div class="tab-filters">
+        <div class="filter-group">
+          <label>Search:</label>
+          <input 
+            type="text" 
+            [(ngModel)]="userSearchTerm" 
+            placeholder="Search users..."
+            class="form-control">
+        </div>
+      </div>
+      </div>
+    </div>
+
+    <div class="users-grid">
+      <div class="user-card" *ngFor="let user of paginatedUsers">
+        <div class="user-avatar">
+          <i class="bi bi-person-circle"></i>
+        </div>
+        <div class="user-info">
+          <h4 class="user-name">{{ user.name }}</h4>
+          <p class="user-email">{{ user.email }}</p>
+          <div class="user-stats">
+            <span class="user-coins">
+              <i class="bi bi-coin"></i>
+              {{ user.coins }} coins
+            </span>
+            <span class="user-bookings">
+              <i class="bi bi-ticket-perforated"></i>
+              {{ user.totalBookings || 0 }} bookings
+            </span>
+          </div>
+        </div>
+        <div class="user-actions">
+          <button class="btn btn-sm btn-outline-primary" 
+                  (click)="updateUserCoins(user, user.coins + 100)">
+            Add Coins
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination" *ngIf="totalUserPages > 1">
+      <button class="btn btn-outline-primary" 
+              [disabled]="currentUserPage === 1"
+              (click)="goToFirstUserPage()">
+        First
+      </button>
+      <button class="btn btn-outline-primary" 
+              [disabled]="currentUserPage === 1"
+              (click)="goToPreviousUserPage()">
+        Previous
+      </button>
+      <span class="page-info">
+        Page {{ currentUserPage }} of {{ totalUserPages }}
+      </span>
+      <button class="btn btn-outline-primary" 
+              [disabled]="currentUserPage === totalUserPages"
+              (click)="goToNextUserPage()">
+        Next
+      </button>
+      <button class="btn btn-outline-primary" 
+              [disabled]="currentUserPage === totalUserPages"
+              (click)="goToLastUserPage()">
+        Last
+      </button>
+    </div>
+  </div>
+
+  <!-- Analytics Tab -->
+  <div class="tab-content" *ngIf="activeTab === 'analytics'">
+    <div class="tab-header">
+      <h2 class="tab-title">
+        <i class="bi bi-graph-up"></i>
+        Analytics & Reports
+      </h2>
+      <div class="export-buttons">
+        <button class="btn btn-export btn-pdf" (click)="exportToPDF('analytics')">
+          <i class="bi bi-file-earmark-pdf"></i>
+          Export PDF
+        </button>
+        <button class="btn btn-export btn-csv" (click)="exportToCSV('analytics')">
+          <i class="bi bi-file-earmark-spreadsheet"></i>
+          Export CSV
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading-overlay" *ngIf="!analytics">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p>Loading analytics data...</p>
+    </div>
+
+    <!-- Analytics Content -->
+    <div class="analytics-dashboard" *ngIf="analytics">
+      
+      <!-- Key Metrics Row -->
+      <div class="analytics-metrics">
+        <div class="metric-card">
+          <div class="metric-icon">
+            <i class="bi bi-graph-up-arrow"></i>
+          </div>
+          <div class="metric-content">
+            <h3>{{ analytics.revenueTrends[0]?.revenue || 0 | currency:'INR':'symbol':'1.0-0' }}</h3>
+            <p>Total Revenue</p>
+            <span class="metric-change positive">
+              <i class="bi bi-arrow-up"></i>
+              Last 12 months
+            </span>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon">
+            <i class="bi bi-ticket-perforated"></i>
+          </div>
+          <div class="metric-content">
+            <h3>{{ analytics.revenueTrends[0]?.bookings || 0 }}</h3>
+            <p>Total Bookings</p>
+            <span class="metric-change positive">
+              <i class="bi bi-arrow-up"></i>
+              Confirmed bookings
+            </span>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon">
+            <i class="bi bi-people"></i>
+          </div>
+          <div class="metric-content">
+            <h3>{{ getTotalNewUsers() }}</h3>
+            <p>New Users</p>
+            <span class="metric-change positive">
+              <i class="bi bi-arrow-up"></i>
+              Last 12 months
+            </span>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon">
+            <i class="bi bi-percent"></i>
+          </div>
+          <div class="metric-content">
+            <h3>{{ getConfirmationRate() }}%</h3>
+            <p>Confirmation Rate</p>
+            <span class="metric-change positive">
+              <i class="bi bi-check-circle"></i>
+              Booking success
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="charts-grid">
+        <!-- Revenue Trends Chart -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <h4>Revenue Trends</h4>
+            <i class="bi bi-graph-up"></i>
+          </div>
+          <div class="chart-content">
+            <canvas #revenueChart></canvas>
+          </div>
+        </div>
+
+        <!-- Booking by Travel Mode -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <h4>Bookings by Travel Mode</h4>
+            <i class="bi bi-pie-chart"></i>
+          </div>
+          <div class="chart-content">
+            <canvas #modeChart></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Data Tables Row -->
+      <div class="data-tables">
+        <!-- Top Routes -->
+        <div class="table-card">
+          <div class="table-header">
+            <h4>Top Routes</h4>
+            <i class="bi bi-map"></i>
+          </div>
+          <div class="table-content">
+            <table class="analytics-table">
+              <thead>
+                <tr>
+                  <th>Route</th>
+                  <th>Bookings</th>
+                  <th>Revenue</th>
+                  <th>Avg Price</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let route of analytics.topRoutes.slice(0, 5)">
+                  <td>{{ route.route }}</td>
+                  <td>{{ route.bookings }}</td>
+                  <td>{{ formatCurrency(route.revenue) }}</td>
+                  <td>{{ formatCurrency(route.avgPrice) }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Booking Status Distribution -->
+        <div class="table-card">
+          <div class="table-header">
+            <h4>Booking Status</h4>
+            <i class="bi bi-pie-chart"></i>
+          </div>
+          <div class="table-content">
+            <table class="analytics-table">
+              <thead>
+                <tr>
+                  <th>Status</th>
+                  <th>Count</th>
+                  <th>Revenue</th>
+                  <th>Percentage</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let status of analytics.bookingStatus">
+                  <td>
+                    <span class="status-badge" [class]="'status-' + status.status">
+                      {{ status.status }}
+                    </span>
+                  </td>
+                  <td>{{ status.count }}</td>
+                  <td>{{ formatCurrency(status.revenue) }}</td>
+                  <td>{{ getStatusPercentage(status.count) }}%</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Peak Hours Analysis -->
+      <div class="peak-hours-card">
+        <div class="card-header">
+          <h4>Peak Booking Hours</h4>
+          <i class="bi bi-clock"></i>
+        </div>
+        <div class="peak-hours-content">
+          <div class="hour-bar" *ngFor="let hour of analytics.peakHours">
+            <div class="hour-label">{{ hour.hour }}:00</div>
+            <div class="hour-bar-container">
+              <div class="hour-bar-fill" [style.width.%]="getHourBarWidth(hour.bookings)"></div>
+            </div>
+            <div class="hour-count">{{ hour.bookings }}</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Routes Tab -->
+  <div class="tab-content" *ngIf="activeTab === 'routes'">
+    <!-- New Modern Header -->
+    <div class="modern-header">
+      <div class="header-content">
+        <div class="title-section">
+          <h1 class="main-title">Route Management</h1>
+          <p class="subtitle">Manage and organize your transportation routes</p>
+        </div>
+        <div class="header-actions-group">
+          <div class="export-buttons">
+            <button class="btn btn-export btn-pdf" (click)="exportToPDF('routes')">
+              <i class="bi bi-file-earmark-pdf"></i>
+              PDF
+            </button>
+            <button class="btn btn-export btn-csv" (click)="exportToCSV('routes')">
+              <i class="bi bi-file-earmark-spreadsheet"></i>
+              CSV
+            </button>
+          </div>
+          <button class="add-route-btn" (click)="openRouteForm()">
+            <i class="bi bi-plus-lg"></i>
+            Add Route
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modern Filter Cards -->
+    <div class="filter-cards">
+      <div class="filter-card" 
+           [class.active]="selectedRouteMode === 'all'"
+           (click)="selectRouteMode('all')">
+        <div class="filter-icon all-icon">
+          <i class="bi bi-grid-3x3-gap"></i>
+        </div>
+        <div class="filter-info">
+          <h3>All Routes</h3>
+          <span class="count">{{ routes.length }}</span>
+        </div>
+      </div>
+
+      <div class="filter-card" 
+           [class.active]="selectedRouteMode === 'bus'"
+           (click)="selectRouteMode('bus')">
+        <div class="filter-icon bus-icon">
+          <i class="bi bi-bus-front-fill"></i>
+        </div>
+        <div class="filter-info">
+          <h3>Bus Routes</h3>
+          <span class="count">{{ getRoutesByMode('bus').length }}</span>
+        </div>
+      </div>
+
+      <div class="filter-card" 
+           [class.active]="selectedRouteMode === 'train'"
+           (click)="selectRouteMode('train')">
+        <div class="filter-icon train-icon">
+          <i class="bi bi-train-front-fill"></i>
+        </div>
+        <div class="filter-info">
+          <h3>Train Routes</h3>
+          <span class="count">{{ getRoutesByMode('train').length }}</span>
+        </div>
+      </div>
+
+      <div class="filter-card" 
+           [class.active]="selectedRouteMode === 'flight'"
+           (click)="selectRouteMode('flight')">
+        <div class="filter-icon flight-icon">
+          <i class="bi bi-airplane-fill"></i>
+        </div>
+        <div class="filter-info">
+          <h3>Flight Routes</h3>
+          <span class="count">{{ getRoutesByMode('flight').length }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modern Routes Grid -->
+    <div class="routes-grid">
+      <div class="route-card" *ngFor="let route of getFilteredRoutes()">
+        <div class="route-header">
+          <div class="route-info">
+            <h3 class="route-title">{{ route.fromCity }} → {{ route.toCity }}</h3>
+            <div class="route-meta">
+              <span class="operator">{{ route.operator }}</span>
+              <span class="duration">{{ route.duration }}</span>
+            </div>
+          </div>
+          <div class="route-badges">
+            <span class="mode-badge" [class]="'mode-' + route.travelMode">
+              {{ route.travelMode }}
+            </span>
+            <span class="status-badge" [class]="route.isActive ? 'active' : 'inactive'">
+              {{ route.isActive ? 'Active' : 'Inactive' }}
+            </span>
+          </div>
+        </div>
+
+        <div class="route-details">
+          <div class="detail-item">
+            <i class="bi bi-clock"></i>
+            <span>{{ route.departureTime }} - {{ route.arrivalTime }}</span>
+          </div>
+          <div class="detail-item">
+            <i class="bi bi-currency-rupee"></i>
+            <span class="price">{{ formatCurrency(route.price) }}</span>
+          </div>
+        </div>
+
+        <div class="route-actions">
+          <button class="action-btn edit" (click)="openRouteForm(route)" title="Edit Route">
+            <i class="bi bi-pencil"></i>
+            Edit
+          </button>
+          <button class="action-btn delete" (click)="deleteRoute(route)" title="Delete Route">
+            <i class="bi bi-trash"></i>
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Field Management Tab -->
+  <div class="tab-content" *ngIf="activeTab === 'fields'">
+    <!-- Modern Header -->
+    <div class="modern-header">
+      <div class="header-content">
+        <div class="title-section">
+          <h1 class="main-title">Field Management</h1>
+          <p class="subtitle">Add, edit, or remove fields from passenger forms across all transport modes</p>
+        </div>
+        <div class="header-actions-group">
+          <button class="add-route-btn" (click)="openFieldForm()">
+            <i class="bi bi-plus-circle"></i>
+            Add New Field
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Transport Mode Filter Cards -->
+    <div class="filter-cards">
+      <div class="filter-card" 
+           [class.active]="selectedFieldMode === 'all'"
+           (click)="selectFieldMode('all')">
+        <div class="filter-icon all-icon">
+          <i class="bi bi-list-ul"></i>
+        </div>
+        <div class="filter-info">
+          <h3>All Fields</h3>
+          <span class="count">{{ getTotalFields() }}</span>
+        </div>
+      </div>
+
+      <div class="filter-card" 
+           [class.active]="selectedFieldMode === 'bus'"
+           (click)="selectFieldMode('bus')">
+        <div class="filter-icon bus-icon">
+          <i class="bi bi-bus-front-fill"></i>
+        </div>
+        <div class="filter-info">
+          <h3>Bus Fields</h3>
+          <span class="count">{{ getFieldsByMode('bus').length }}</span>
+        </div>
+      </div>
+
+      <div class="filter-card" 
+           [class.active]="selectedFieldMode === 'train'"
+           (click)="selectFieldMode('train')">
+        <div class="filter-icon train-icon">
+          <i class="bi bi-train-front-fill"></i>
+        </div>
+        <div class="filter-info">
+          <h3>Train Fields</h3>
+          <span class="count">{{ getFieldsByMode('train').length }}</span>
+        </div>
+      </div>
+
+      <div class="filter-card" 
+           [class.active]="selectedFieldMode === 'flight'"
+           (click)="selectFieldMode('flight')">
+        <div class="filter-icon flight-icon">
+          <i class="bi bi-airplane-fill"></i>
+        </div>
+        <div class="filter-info">
+          <h3>Flight Fields</h3>
+          <span class="count">{{ getFieldsByMode('flight').length }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fields Grid -->
+    <div class="fields-grid">
+      <div class="field-card" *ngFor="let field of getFilteredFields()">
+        <div class="field-header">
+          <div class="field-info">
+            <div class="field-name-section">
+              <h3 class="field-name">{{ field.label }}</h3>
+              <span class="field-type">{{ field.type }}</span>
+            </div>
+            <div class="field-meta">
+              <span class="field-id">{{ field.name }}</span>
+              <span class="field-required" [class]="field.required ? 'required' : 'optional'">
+                {{ field.required ? 'Required' : 'Optional' }}
+              </span>
+            </div>
+          </div>
+          <div class="field-badges">
+            <span class="mode-badge" [class]="'mode-' + field.travelMode">
+              {{ field.travelMode }}
+            </span>
+            <span class="status-badge" [class]="field.isActive ? 'active' : 'inactive'">
+              {{ field.isActive ? 'Active' : 'Inactive' }}
+            </span>
+          </div>
+        </div>
+
+        <div class="field-details">
+          <div class="detail-item">
+            <i class="bi bi-tag"></i>
+            <span>Field ID: {{ field.name }}</span>
+          </div>
+          <div class="detail-item">
+            <i class="bi bi-type"></i>
+            <span>Type: {{ field.type }}</span>
+          </div>
+          <div class="detail-item">
+            <i class="bi bi-textarea-resize"></i>
+            <span>Placeholder: {{ field.placeholder || 'No placeholder' }}</span>
+          </div>
+        </div>
+
+        <div class="field-actions">
+          <button class="action-btn edit" (click)="openFieldForm(field)" title="Edit Field">
+            <i class="bi bi-pencil"></i>
+            Edit
+          </button>
+          <button class="action-btn delete" (click)="deleteField(field)" title="Delete Field">
+            <i class="bi bi-trash"></i>
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Coin Management Tab -->
+  <div class="tab-content" *ngIf="activeTab === 'coins'">
+    <!-- Modern Header -->
+    <div class="modern-header">
+      <div class="header-content">
+        <div class="title-section">
+          <h1 class="main-title">Coin Management</h1>
+          <p class="subtitle">Manage coin packages, pricing, and user coin balances</p>
+        </div>
+        <div class="header-actions-group">
+          <div class="export-buttons">
+            <button class="btn btn-export btn-pdf" (click)="exportToPDF('coins')">
+              <i class="bi bi-file-earmark-pdf"></i>
+              PDF
+            </button>
+            <button class="btn btn-export btn-csv" (click)="exportToCSV('coins')">
+              <i class="bi bi-file-earmark-spreadsheet"></i>
+              CSV
+            </button>
+          </div>
+          <button class="add-route-btn" (click)="openCoinForm()">
+            <i class="bi bi-plus-circle"></i>
+            Add Coin Package
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Coin Statistics Cards -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">
+          <i class="bi bi-coin"></i>
+        </div>
+        <div class="stat-content">
+          <h3>Total Coins Sold</h3>
+          <span class="stat-value">{{ coinStats?.totalCoinsInCirculation || 0 | number }}</span>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">
+          <i class="bi bi-currency-rupee"></i>
+        </div>
+        <div class="stat-content">
+          <h3>Total Revenue</h3>
+          <span class="stat-value">{{ formatCurrency(coinStats?.totalRevenue || 0) }}</span>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">
+          <i class="bi bi-people"></i>
+        </div>
+        <div class="stat-content">
+          <h3>Active Users</h3>
+          <span class="stat-value">{{ coinStats?.activeUsers || 0 }}</span>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">
+          <i class="bi bi-graph-up"></i>
+        </div>
+        <div class="stat-content">
+          <h3>Avg. Purchase</h3>
+          <span class="stat-value">{{ formatCurrency(coinStats?.averagePurchase || 0) }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Coin Distribution & Loss Statistics -->
+    <div class="stats-grid">
+      <div class="stat-card distribution-card">
+        <div class="stat-icon">
+          <i class="bi bi-box-seam"></i>
+        </div>
+        <div class="stat-content">
+          <h3>Coins Distributed</h3>
+          <span class="stat-value">{{ coinStats?.distributedCoins || 0 | number }}</span>
+          <div class="stat-subtitle">To users</div>
+        </div>
+      </div>
+      
+      <div class="stat-card used-card">
+        <div class="stat-icon">
+          <i class="bi bi-check-circle"></i>
+        </div>
+        <div class="stat-content">
+          <h3>Coins Used</h3>
+          <span class="stat-value">{{ coinStats?.usedCoins || 0 | number }}</span>
+          <div class="stat-subtitle">{{ coinStats?.coinUtilizationRate || 0 | number:'1.1-1' }}% utilization</div>
+        </div>
+      </div>
+      
+      <div class="stat-card loss-card">
+        <div class="stat-icon">
+          <i class="bi bi-x-circle"></i>
+        </div>
+        <div class="stat-content">
+          <h3>Coins Lost</h3>
+          <span class="stat-value">{{ coinStats?.lostCoins || 0 | number }}</span>
+          <div class="stat-subtitle">{{ coinStats?.coinLossRate || 0 | number:'1.1-1' }}% loss rate</div>
+        </div>
+      </div>
+      
+      <div class="stat-card pending-card">
+        <div class="stat-icon">
+          <i class="bi bi-clock"></i>
+        </div>
+        <div class="stat-content">
+          <h3>Coins Pending</h3>
+          <span class="stat-value">{{ coinStats?.pendingCoins || 0 | number }}</span>
+          <div class="stat-subtitle">{{ coinStats?.coinPendingRate || 0 | number:'1.1-1' }}% pending</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Package Performance Section -->
+    <div class="performance-section">
+      <h3 class="section-title">
+        <i class="bi bi-trophy"></i>
+        Package Performance
+      </h3>
+      
+      <div class="performance-grid">
+        <div class="performance-card">
+          <h4>Top Packages</h4>
+          <div class="package-list" *ngIf="coinStats?.topPackages">
+            <div class="package-item" *ngFor="let pkg of coinStats.topPackages">
+              <div class="package-info">
+                <span class="package-name">{{ pkg.name }}</span>
+                <span class="package-sales">{{ pkg.sales }} sales</span>
+              </div>
+              <div class="package-metrics">
+                <span class="package-coins">{{ pkg.totalCoinsSold | number }} coins</span>
+                <span class="package-revenue">{{ formatCurrency(pkg.totalRevenue) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="performance-card">
+          <h4>Package Distribution</h4>
+          <div class="distribution-list" *ngIf="coinStats?.packageDistribution">
+            <div class="distribution-item" *ngFor="let dist of coinStats.packageDistribution">
+              <div class="distribution-info">
+                <span class="distribution-type">{{ dist.type | titlecase }}</span>
+                <span class="distribution-count">{{ dist.packageCount }} packages</span>
+              </div>
+              <div class="distribution-metrics">
+                <span class="distribution-coins">{{ dist.totalCoins | number }} coins</span>
+                <span class="distribution-sales">{{ dist.totalSales }} sales</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Coin Package Filter Cards -->
+    <div class="filter-cards">
+      <div class="filter-card" 
+           [class.active]="selectedCoinFilter === 'all'"
+           (click)="selectCoinFilter('all')">
+        <div class="filter-icon all-icon">
+          <i class="bi bi-coin"></i>
+        </div>
+        <div class="filter-info">
+          <h3>All Packages</h3>
+          <span class="count">{{ getTotalCoins() }}</span>
+        </div>
+      </div>
+
+      <div class="filter-card" 
+           [class.active]="selectedCoinFilter === 'active'"
+           (click)="selectCoinFilter('active')">
+        <div class="filter-icon bus-icon">
+          <i class="bi bi-check-circle"></i>
+        </div>
+        <div class="filter-info">
+          <h3>Active Packages</h3>
+          <span class="count">{{ getActiveCoinPackages().length }}</span>
+        </div>
+      </div>
+
+      <div class="filter-card" 
+           [class.active]="selectedCoinFilter === 'popular'"
+           (click)="selectCoinFilter('popular')">
+        <div class="filter-icon train-icon">
+          <i class="bi bi-star-fill"></i>
+        </div>
+        <div class="filter-info">
+          <h3>Popular Packages</h3>
+          <span class="count">{{ getPopularCoinPackages().length }}</span>
+        </div>
+      </div>
+
+      <div class="filter-card" 
+           [class.active]="selectedCoinFilter === 'premium'"
+           (click)="selectCoinFilter('premium')">
+        <div class="filter-icon flight-icon">
+          <i class="bi bi-gem"></i>
+        </div>
+        <div class="filter-info">
+          <h3>Premium Packages</h3>
+          <span class="count">{{ getPremiumCoinPackages().length }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Coin Packages Grid -->
+    <div class="coins-grid">
+      <div class="coin-card" *ngFor="let coin of getFilteredCoins()">
+        <div class="coin-header">
+          <div class="coin-info">
+            <div class="coin-name-section">
+              <h3 class="coin-name">{{ coin.name }}</h3>
+              <span class="coin-type">{{ coin.type }}</span>
+            </div>
+            <div class="coin-meta">
+              <span class="coin-amount">{{ coin.amount }} Coins</span>
+              <span class="coin-price">{{ formatCurrency(coin.price) }}</span>
+            </div>
+          </div>
+          <div class="coin-badges">
+            <span class="status-badge" [class]="coin.isActive ? 'active' : 'inactive'">
+              {{ coin.isActive ? 'Active' : 'Inactive' }}
+            </span>
+            <span class="popularity-badge" [class]="coin.isPopular ? 'popular' : 'normal'">
+              {{ coin.isPopular ? 'Popular' : 'Standard' }}
+            </span>
+          </div>
+        </div>
+
+        <div class="coin-details">
+          <div class="detail-item">
+            <i class="bi bi-tag"></i>
+            <span>Package ID: {{ coin.id }}</span>
+          </div>
+          <div class="detail-item">
+            <i class="bi bi-percent"></i>
+            <span>Discount: {{ coin.discount || 0 }}%</span>
+          </div>
+          <div class="detail-item">
+            <i class="bi bi-graph-up"></i>
+            <span>Sales: {{ coin.sales || 0 }} packages</span>
+          </div>
+        </div>
+
+        <div class="coin-actions">
+          <button class="action-btn edit" (click)="openCoinForm(coin)" title="Edit Package">
+            <i class="bi bi-pencil"></i>
+            Edit
+          </button>
+          <button class="action-btn delete" (click)="deleteCoin(coin)" title="Delete Package">
+            <i class="bi bi-trash"></i>
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Tab -->
+  <div class="tab-content" *ngIf="activeTab === 'settings'">
+    <div class="tab-header">
+      <h2 class="tab-title">
+        <i class="bi bi-gear"></i>
+        System Settings
+      </h2>
+    </div>
+    
+    <div class="settings-container" *ngIf="!settingsLoading">
+      <form class="settings-form" #settingsForm="ngForm">
+        <!-- Coin & Rewards Settings -->
+        <div class="settings-section">
+          <div class="section-header">
+            <i class="bi bi-coin"></i>
+            <h3>Coin & Rewards Settings</h3>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="coinRate">
+                <i class="bi bi-percent"></i>
+                Coin Rate (%)
+              </label>
+              <input 
+                type="number" 
+                id="coinRate" 
+                name="coinRate"
+                [(ngModel)]="settings.coinRate" 
+                min="0" 
+                max="100"
+                class="form-control"
+                placeholder="Percentage of booking price converted to coins">
+              <small>Percentage of booking price that gets converted to coins (e.g., 5 = 5%)</small>
+            </div>
+            <div class="form-group">
+              <label for="maxCoinsPerUser">
+                <i class="bi bi-gem"></i>
+                Max Coins Per User
+              </label>
+              <input 
+                type="number" 
+                id="maxCoinsPerUser" 
+                name="maxCoinsPerUser"
+                [(ngModel)]="settings.maxCoinsPerUser" 
+                min="0"
+                class="form-control"
+                placeholder="Maximum coins a user can hold">
+            </div>
+          </div>
+        </div>
+
+        <!-- Booking Settings -->
+        <div class="settings-section">
+          <div class="section-header">
+            <i class="bi bi-calendar-check"></i>
+            <h3>Booking Settings</h3>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="maxBookingsPerUser">
+                <i class="bi bi-bookmark-check"></i>
+                Max Bookings Per User
+              </label>
+              <input 
+                type="number" 
+                id="maxBookingsPerUser" 
+                name="maxBookingsPerUser"
+                [(ngModel)]="settings.maxBookingsPerUser" 
+                min="1"
+                class="form-control"
+                placeholder="Maximum bookings allowed per user">
+            </div>
+            <div class="form-group">
+              <label for="bookingCancellationHours">
+                <i class="bi bi-clock-history"></i>
+                Cancellation Hours
+              </label>
+              <input 
+                type="number" 
+                id="bookingCancellationHours" 
+                name="bookingCancellationHours"
+                [(ngModel)]="settings.bookingCancellationHours" 
+                min="1"
+                class="form-control"
+                placeholder="Hours before travel date for cancellation">
+            </div>
+            <div class="form-group">
+              <label for="refundProcessingDays">
+                <i class="bi bi-arrow-counterclockwise"></i>
+                Refund Processing Days
+              </label>
+              <input 
+                type="number" 
+                id="refundProcessingDays" 
+                name="refundProcessingDays"
+                [(ngModel)]="settings.refundProcessingDays" 
+                min="1"
+                class="form-control"
+                placeholder="Days to process refund">
+            </div>
+          </div>
+        </div>
+
+        <!-- Discount Settings -->
+        <div class="settings-section">
+          <div class="section-header">
+            <i class="bi bi-tag"></i>
+            <h3>Discount Settings</h3>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="studentDiscount">
+                <i class="bi bi-mortarboard"></i>
+                Student Discount (%)
+              </label>
+              <input 
+                type="number" 
+                id="studentDiscount" 
+                name="studentDiscount"
+                [(ngModel)]="settings.studentDiscount" 
+                min="0" 
+                max="100"
+                class="form-control"
+                placeholder="Discount percentage for students">
+            </div>
+            <div class="form-group">
+              <label for="studentCoinsRequired">
+                <i class="bi bi-coin"></i>
+                Student Coins Required
+              </label>
+              <input 
+                type="number" 
+                id="studentCoinsRequired" 
+                name="studentCoinsRequired"
+                [(ngModel)]="settings.studentCoinsRequired" 
+                min="0"
+                class="form-control"
+                placeholder="Minimum coins required for student discount">
+            </div>
+            <div class="form-group">
+              <label for="seniorDiscount">
+                <i class="bi bi-person-badge"></i>
+                Senior Citizen Discount (%)
+              </label>
+              <input 
+                type="number" 
+                id="seniorDiscount" 
+                name="seniorDiscount"
+                [(ngModel)]="settings.seniorDiscount" 
+                min="0" 
+                max="100"
+                class="form-control"
+                placeholder="Discount percentage for senior citizens">
+            </div>
+            <div class="form-group">
+              <label for="seniorCoinsRequired">
+                <i class="bi bi-coin"></i>
+                Senior Coins Required
+              </label>
+              <input 
+                type="number" 
+                id="seniorCoinsRequired" 
+                name="seniorCoinsRequired"
+                [(ngModel)]="settings.seniorCoinsRequired" 
+                min="0"
+                class="form-control"
+                placeholder="Minimum coins required for senior discount">
+            </div>
+          </div>
+        </div>
+
+        <!-- General Settings -->
+        <div class="settings-section">
+          <div class="section-header">
+            <i class="bi bi-globe"></i>
+            <h3>General Settings</h3>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="siteName">
+                <i class="bi bi-building"></i>
+                Site Name
+              </label>
+              <input 
+                type="text" 
+                id="siteName" 
+                name="siteName"
+                [(ngModel)]="settings.siteName" 
+                class="form-control"
+                placeholder="Website name">
+            </div>
+            <div class="form-group">
+              <label for="siteDescription">
+                <i class="bi bi-info-circle"></i>
+                Site Description
+              </label>
+              <textarea 
+                id="siteDescription" 
+                name="siteDescription"
+                [(ngModel)]="settings.siteDescription" 
+                class="form-control"
+                rows="2"
+                placeholder="Website description"></textarea>
+            </div>
+            <div class="form-group">
+              <label for="supportEmail">
+                <i class="bi bi-envelope"></i>
+                Support Email
+              </label>
+              <input 
+                type="email" 
+                id="supportEmail" 
+                name="supportEmail"
+                [(ngModel)]="settings.supportEmail" 
+                class="form-control"
+                placeholder="support@gotrip.com">
+            </div>
+            <div class="form-group">
+              <label for="supportPhone">
+                <i class="bi bi-telephone"></i>
+                Support Phone
+              </label>
+              <input 
+                type="tel" 
+                id="supportPhone" 
+                name="supportPhone"
+                [(ngModel)]="settings.supportPhone" 
+                class="form-control"
+                placeholder="+91-1234567890">
+            </div>
+          </div>
+        </div>
+
+        <!-- Notification Settings -->
+        <div class="settings-section">
+          <div class="section-header">
+            <i class="bi bi-bell"></i>
+            <h3>Notification Settings</h3>
+          </div>
+          <div class="form-grid">
+            <div class="form-group checkbox-group">
+              <label class="checkbox-label">
+                <input 
+                  type="checkbox" 
+                  id="emailNotifications" 
+                  name="emailNotifications"
+                  [(ngModel)]="settings.emailNotifications">
+                <span class="checkmark"></span>
+                <i class="bi bi-envelope-check"></i>
+                Enable Email Notifications
+              </label>
+            </div>
+            <div class="form-group checkbox-group">
+              <label class="checkbox-label">
+                <input 
+                  type="checkbox" 
+                  id="smsNotifications" 
+                  name="smsNotifications"
+                  [(ngModel)]="settings.smsNotifications">
+                <span class="checkmark"></span>
+                <i class="bi bi-chat-dots"></i>
+                Enable SMS Notifications
+              </label>
+            </div>
+            <div class="form-group checkbox-group">
+              <label class="checkbox-label">
+                <input 
+                  type="checkbox" 
+                  id="maintenanceMode" 
+                  name="maintenanceMode"
+                  [(ngModel)]="settings.maintenanceMode">
+                <span class="checkmark"></span>
+                <i class="bi bi-tools"></i>
+                Maintenance Mode
+              </label>
+              <small>When enabled, the site will be in maintenance mode</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Payment Gateway Settings -->
+        <div class="settings-section">
+          <div class="section-header">
+            <i class="bi bi-credit-card"></i>
+            <h3>Payment Gateway Settings</h3>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="razorpayKeyId">
+                <i class="bi bi-key"></i>
+                Razorpay Key ID
+              </label>
+              <input 
+                type="text" 
+                id="razorpayKeyId" 
+                name="razorpayKeyId"
+                [(ngModel)]="settings.razorpayKeyId" 
+                class="form-control"
+                placeholder="Razorpay Key ID">
+            </div>
+            <div class="form-group">
+              <label for="razorpayKeySecret">
+                <i class="bi bi-shield-lock"></i>
+                Razorpay Key Secret
+              </label>
+              <input 
+                type="password" 
+                id="razorpayKeySecret" 
+                name="razorpayKeySecret"
+                [(ngModel)]="settings.razorpayKeySecret" 
+                class="form-control"
+                placeholder="Razorpay Key Secret">
+            </div>
+          </div>
+        </div>
+
+        <!-- Email Server Settings -->
+        <div class="settings-section">
+          <div class="section-header">
+            <i class="bi bi-server"></i>
+            <h3>Email Server Settings</h3>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="smtpHost">
+                <i class="bi bi-hdd-network"></i>
+                SMTP Host
+              </label>
+              <input 
+                type="text" 
+                id="smtpHost" 
+                name="smtpHost"
+                [(ngModel)]="settings.smtpHost" 
+                class="form-control"
+                placeholder="smtp.gmail.com">
+            </div>
+            <div class="form-group">
+              <label for="smtpPort">
+                <i class="bi bi-123"></i>
+                SMTP Port
+              </label>
+              <input 
+                type="number" 
+                id="smtpPort" 
+                name="smtpPort"
+                [(ngModel)]="settings.smtpPort" 
+                min="1" 
+                max="65535"
+                class="form-control"
+                placeholder="587">
+            </div>
+            <div class="form-group">
+              <label for="smtpUser">
+                <i class="bi bi-person"></i>
+                SMTP Username
+              </label>
+              <input 
+                type="text" 
+                id="smtpUser" 
+                name="smtpUser"
+                [(ngModel)]="settings.smtpUser" 
+                class="form-control"
+                placeholder="your-email@gmail.com">
+            </div>
+            <div class="form-group">
+              <label for="smtpPassword">
+                <i class="bi bi-lock"></i>
+                SMTP Password
+              </label>
+              <input 
+                type="password" 
+                id="smtpPassword" 
+                name="smtpPassword"
+                [(ngModel)]="settings.smtpPassword" 
+                class="form-control"
+                placeholder="SMTP password or app password">
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="settings-actions">
+          <button 
+            type="button" 
+            class="btn btn-primary" 
+            (click)="saveSettings()" 
+            [disabled]="settingsSaving">
+            <i class="bi bi-save"></i>
+            {{ settingsSaving ? 'Saving...' : 'Save Settings' }}
+          </button>
+          <button 
+            type="button" 
+            class="btn btn-secondary" 
+            (click)="resetSettings()">
+            <i class="bi bi-arrow-counterclockwise"></i>
+            Reset to Defaults
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div class="settings-loading" *ngIf="settingsLoading">
+      <i class="bi bi-hourglass-split"></i>
+      <p>Loading settings...</p>
+    </div>
+  </div>
+
+  <!-- Enquiries Tab -->
+  <div class="tab-content" *ngIf="activeTab === 'enquiries'">
+    <div class="tab-header">
+      <h2 class="tab-title">
+        <i class="bi bi-chat-dots"></i>
+        Customer Enquiries
+      </h2>
+      <div class="export-buttons">
+        <button class="btn btn-export btn-pdf" (click)="exportToPDF('enquiries')">
+          <i class="bi bi-file-earmark-pdf"></i>
+          Export PDF
+        </button>
+        <button class="btn btn-export btn-csv" (click)="exportToCSV('enquiries')">
+          <i class="bi bi-file-earmark-spreadsheet"></i>
+          Export CSV
+        </button>
+      </div>
+    </div>
+    <div class="bookings-table">
+      <div class="tab-filters">
+        <div class="filter-group">
+          <label>Filter:</label>
+          <select [(ngModel)]="enquiryFilter">
+            <option value="all">All</option>
+            <option value="Payment">Payment</option>
+            <option value="Booking">Booking</option>
+            <option value="Refund">Refund</option>
+            <option value="Account">Account</option>
+            <option value="General">General</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="table-header">
+        <div class="table-cell">ID</div>
+        <div class="table-cell">Name</div>
+        <div class="table-cell">Email</div>
+        <div class="table-cell">Subject</div>
+        <div class="table-cell">Status</div>
+        <div class="table-cell">Actions</div>
+      </div>
+      <div class="table-body">
+        <div class="table-row" *ngFor="let q of filteredEnquiries">
+          <div class="table-cell">{{ q.id }}</div>
+          <div class="table-cell">{{ q.name }}</div>
+          <div class="table-cell">{{ q.email }}</div>
+          <div class="table-cell"><strong>{{ q.subject }}</strong></div>
+          <div class="table-cell">
+            <span class="status-badge" [class]="((q.status || '').toLowerCase() === 'solved' || (q.status || '').toLowerCase() === 'resolved') ? 'status-confirmed' : 'status-pending'">{{ q.status | titlecase }}</span>
+          </div>
+          <div class="table-cell">
+            <div class="action-buttons">
+              <button class="btn btn-sm btn-outline-primary" (click)="openResolveModal(q)" *ngIf="q.status !== 'solved'">Mark Solved</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Resolve Modal -->
+  <div class="modal-overlay" *ngIf="showResolveModal" (click)="closeResolveModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Resolve Enquiry</h3>
+        <button class="btn-close" (click)="closeResolveModal()"><i class="bi bi-x"></i></button>
+      </div>
+      <div class="modal-body">
+        <label class="form-label">Short resolution note (optional)</label>
+        <textarea class="form-control" rows="4" [(ngModel)]="resolveNote" placeholder="Write a brief note to the user"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeResolveModal()">Cancel</button>
+        <button class="btn btn-primary" (click)="confirmResolve()">Mark Solved</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Route Form Modal -->
+<div class="modal-overlay" *ngIf="showRouteForm" (click)="closeRouteForm()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ editingRoute ? 'Edit Route' : 'Add New Route' }}</h3>
+      <button class="btn-close" (click)="closeRouteForm()">
+        <i class="bi bi-x"></i>
+      </button>
+    </div>
+    
+    <div class="modal-body">
+      <form (ngSubmit)="saveRoute()" #routeFormRef="ngForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="fromCity">From City</label>
+            <input 
+              type="text" 
+              id="fromCity" 
+              name="fromCity"
+              [(ngModel)]="routeForm.fromCity" 
+              required
+              class="form-control"
+              placeholder="Enter departure city">
+          </div>
+          
+          <div class="form-group">
+            <label for="toCity">To City</label>
+            <input 
+              type="text" 
+              id="toCity" 
+              name="toCity"
+              [(ngModel)]="routeForm.toCity" 
+              required
+              class="form-control"
+              placeholder="Enter destination city">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="travelMode">Travel Mode</label>
+            <select 
+              id="travelMode" 
+              name="travelMode"
+              [(ngModel)]="routeForm.travelMode" 
+              required
+              class="form-control">
+              <option value="bus">Bus</option>
+              <option value="train">Train</option>
+              <option value="flight">Flight</option>
+              <option value="plane">Plane</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="operator">Operator</label>
+            <input 
+              type="text" 
+              id="operator" 
+              name="operator"
+              [(ngModel)]="routeForm.operator" 
+              required
+              class="form-control"
+              placeholder="Enter operator name">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="price">Price (₹)</label>
+            <input 
+              type="number" 
+              id="price" 
+              name="price"
+              [(ngModel)]="routeForm.price" 
+              required
+              min="0"
+              class="form-control"
+              placeholder="Enter price">
+          </div>
+          
+          <div class="form-group">
+            <label for="duration">Duration</label>
+            <input 
+              type="text" 
+              id="duration" 
+              name="duration"
+              [(ngModel)]="routeForm.duration" 
+              required
+              class="form-control"
+              placeholder="e.g., 2h 30m">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="departureTime">Departure Time</label>
+            <input 
+              type="time" 
+              id="departureTime" 
+              name="departureTime"
+              [(ngModel)]="routeForm.departureTime" 
+              required
+              class="form-control">
+          </div>
+          
+          <div class="form-group">
+            <label for="arrivalTime">Arrival Time</label>
+            <input 
+              type="time" 
+              id="arrivalTime" 
+              name="arrivalTime"
+              [(ngModel)]="routeForm.arrivalTime" 
+              required
+              class="form-control">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input 
+              type="checkbox" 
+              name="isActive"
+              [(ngModel)]="routeForm.isActive">
+            <span class="checkmark"></span>
+            Active Route
+          </label>
+        </div>
+      </form>
+    </div>
+    
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" (click)="closeRouteForm()">
+        Cancel
+      </button>
+      <button type="button" class="btn btn-primary" (click)="saveRoute()" [disabled]="!routeFormRef.form.valid">
+        {{ editingRoute ? 'Update Route' : 'Create Route' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Passenger Form Modal -->
+<div class="modal-overlay" *ngIf="showPassengerForm" (click)="closePassengerForm()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ editingPassenger ? 'Edit Passenger' : 'Add New Passenger' }}</h3>
+      <button class="btn-close" (click)="closePassengerForm()">
+        <i class="bi bi-x"></i>
+      </button>
+    </div>
+    
+    <div class="modal-body">
+      <form (ngSubmit)="savePassenger()" #passengerFormRef="ngForm">
+        <!-- Name Field - Most Important -->
+        <div class="form-group name-field">
+          <label for="passengerName" class="required-label">
+            <i class="bi bi-person-fill"></i>
+            Passenger Full Name *
+          </label>
+          <input 
+            type="text" 
+            id="passengerName" 
+            name="passengerName"
+            [(ngModel)]="passengerForm.name" 
+            required
+            minlength="2"
+            maxlength="50"
+            class="form-control name-input"
+            placeholder="Enter passenger full name (as per ID proof)"
+            #nameInput="ngModel">
+          <div class="field-help">This name will be used across all transport modes (Bus, Train, Flight)</div>
+          <div *ngIf="nameInput.invalid && nameInput.touched" class="error-message">
+            <span *ngIf="nameInput.errors?.['required']">Name is required</span>
+            <span *ngIf="nameInput.errors?.['minlength']">Name must be at least 2 characters</span>
+            <span *ngIf="nameInput.errors?.['maxlength']">Name cannot exceed 50 characters</span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          
+          <div class="form-group">
+            <label for="passengerEmail">Email</label>
+            <input 
+              type="email" 
+              id="passengerEmail" 
+              name="passengerEmail"
+              [(ngModel)]="passengerForm.email" 
+              required
+              class="form-control"
+              placeholder="Enter email address">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="passengerPhone">Phone</label>
+            <input 
+              type="tel" 
+              id="passengerPhone" 
+              name="passengerPhone"
+              [(ngModel)]="passengerForm.phone" 
+              required
+              class="form-control"
+              placeholder="Enter phone number">
+          </div>
+          
+          <div class="form-group">
+            <label for="passengerAge">Age</label>
+            <input 
+              type="number" 
+              id="passengerAge" 
+              name="passengerAge"
+              [(ngModel)]="passengerForm.age" 
+              required
+              min="1"
+              max="120"
+              class="form-control"
+              placeholder="Enter age">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="passengerGender">Gender</label>
+            <select 
+              id="passengerGender" 
+              name="passengerGender"
+              [(ngModel)]="passengerForm.gender" 
+              required
+              class="form-control">
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="passengerTravelMode">Travel Mode</label>
+            <select 
+              id="passengerTravelMode" 
+              name="passengerTravelMode"
+              [(ngModel)]="passengerForm.travelMode" 
+              required
+              class="form-control">
+              <option value="bus">Bus</option>
+              <option value="train">Train</option>
+              <option value="flight">Flight</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="passengerFromCity">From City</label>
+            <input 
+              type="text" 
+              id="passengerFromCity" 
+              name="passengerFromCity"
+              [(ngModel)]="passengerForm.fromCity" 
+              required
+              class="form-control"
+              placeholder="Enter departure city">
+          </div>
+          
+          <div class="form-group">
+            <label for="passengerToCity">To City</label>
+            <input 
+              type="text" 
+              id="passengerToCity" 
+              name="passengerToCity"
+              [(ngModel)]="passengerForm.toCity" 
+              required
+              class="form-control"
+              placeholder="Enter destination city">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="passengerTravelDate">Travel Date</label>
+            <input 
+              type="date" 
+              id="passengerTravelDate" 
+              name="passengerTravelDate"
+              [(ngModel)]="passengerForm.travelDate" 
+              required
+              class="form-control">
+          </div>
+          
+          <div class="form-group">
+            <label for="passengerBookingId">Booking ID</label>
+            <input 
+              type="text" 
+              id="passengerBookingId" 
+              name="passengerBookingId"
+              [(ngModel)]="passengerForm.bookingId" 
+              required
+              class="form-control"
+              placeholder="Enter booking ID">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input 
+              type="checkbox" 
+              [(ngModel)]="passengerForm.isActive" 
+              name="passengerIsActive">
+            Active Passenger
+          </label>
+        </div>
+      </form>
+    </div>
+    
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" (click)="closePassengerForm()">
+        Cancel
+      </button>
+      <button type="button" class="btn btn-primary" (click)="savePassenger()" [disabled]="!passengerFormRef.form.valid">
+        {{ editingPassenger ? 'Update Passenger' : 'Create Passenger' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Field Form Modal -->
+<div class="modal-overlay" *ngIf="showFieldForm" (click)="closeFieldForm()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ editingField ? 'Edit Field' : 'Add New Field' }}</h3>
+      <button class="btn-close" (click)="closeFieldForm()">
+        <i class="bi bi-x"></i>
+      </button>
+    </div>
+    
+    <div class="modal-body">
+      <form (ngSubmit)="saveField()" #fieldFormRef="ngForm">
+        <!-- Field Name - Most Important -->
+        <div class="form-group name-field">
+          <label for="fieldName" class="required-label">
+            <i class="bi bi-tag-fill"></i>
+            Field Name *
+          </label>
+          <input 
+            type="text" 
+            id="fieldName" 
+            name="fieldName"
+            [(ngModel)]="fieldForm.name" 
+            required
+            minlength="2"
+            maxlength="30"
+            class="form-control name-input"
+            placeholder="Enter field name (e.g., passenger_name, emergency_contact)"
+            #nameInput="ngModel">
+          <div class="field-help">This will be the field ID used in forms (use underscores, no spaces)</div>
+          <div *ngIf="nameInput.invalid && nameInput.touched" class="error-message">
+            <span *ngIf="nameInput.errors?.['required']">Field name is required</span>
+            <span *ngIf="nameInput.errors?.['minlength']">Field name must be at least 2 characters</span>
+            <span *ngIf="nameInput.errors?.['maxlength']">Field name cannot exceed 30 characters</span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="fieldLabel">Display Label *</label>
+            <input 
+              type="text" 
+              id="fieldLabel" 
+              name="fieldLabel"
+              [(ngModel)]="fieldForm.label" 
+              required
+              class="form-control"
+              placeholder="Enter display label (e.g., Full Name, Emergency Contact)">
+          </div>
+          
+          <div class="form-group">
+            <label for="fieldType">Field Type *</label>
+            <select 
+              id="fieldType" 
+              name="fieldType"
+              [(ngModel)]="fieldForm.type" 
+              required
+              class="form-control">
+              <option value="text">Text Input</option>
+              <option value="email">Email</option>
+              <option value="tel">Phone Number</option>
+              <option value="number">Number</option>
+              <option value="date">Date</option>
+              <option value="select">Dropdown</option>
+              <option value="textarea">Text Area</option>
+              <option value="checkbox">Checkbox</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="fieldPlaceholder">Placeholder Text</label>
+            <input 
+              type="text" 
+              id="fieldPlaceholder" 
+              name="fieldPlaceholder"
+              [(ngModel)]="fieldForm.placeholder" 
+              class="form-control"
+              placeholder="Enter placeholder text">
+          </div>
+          
+          <div class="form-group">
+            <label for="fieldTravelMode">Travel Mode *</label>
+            <select 
+              id="fieldTravelMode" 
+              name="fieldTravelMode"
+              [(ngModel)]="fieldForm.travelMode" 
+              required
+              class="form-control">
+              <option value="all">All Modes</option>
+              <option value="bus">Bus Only</option>
+              <option value="train">Train Only</option>
+              <option value="flight">Flight Only</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="fieldOrder">Display Order</label>
+            <input 
+              type="number" 
+              id="fieldOrder" 
+              name="fieldOrder"
+              [(ngModel)]="fieldForm.order" 
+              min="1"
+              max="100"
+              class="form-control"
+              placeholder="Enter display order (1-100)">
+          </div>
+          
+          <div class="form-group">
+            <label for="fieldValidation">Validation Rules</label>
+            <input 
+              type="text" 
+              id="fieldValidation" 
+              name="fieldValidation"
+              [(ngModel)]="fieldForm.validation" 
+              class="form-control"
+              placeholder="e.g., min:2,max:50,pattern:^[a-zA-Z ]+$">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input 
+              type="checkbox" 
+              [(ngModel)]="fieldForm.required" 
+              name="fieldRequired">
+            Required Field
+          </label>
+        </div>
+
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input 
+              type="checkbox" 
+              [(ngModel)]="fieldForm.isActive" 
+              name="fieldIsActive">
+            Active Field
+          </label>
+        </div>
+      </form>
+    </div>
+    
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" (click)="closeFieldForm()">
+        Cancel
+      </button>
+      <button type="button" class="btn btn-primary" (click)="saveField()" [disabled]="!fieldFormRef.form.valid">
+        {{ editingField ? 'Update Field' : 'Create Field' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Coin Form Modal -->
+<div class="modal-overlay" *ngIf="showCoinForm" (click)="closeCoinForm()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ editingCoin ? 'Edit Coin Package' : 'Add New Coin Package' }}</h3>
+      <button class="btn-close" (click)="closeCoinForm()">
+        <i class="bi bi-x"></i>
+      </button>
+    </div>
+    
+    <div class="modal-body">
+      <form (ngSubmit)="saveCoin()" #coinFormRef="ngForm">
+        <!-- Package Name - Most Important -->
+        <div class="form-group name-field">
+          <label for="coinName" class="required-label">
+            <i class="bi bi-coin"></i>
+            Package Name *
+          </label>
+          <input 
+            type="text" 
+            id="coinName" 
+            name="coinName"
+            [(ngModel)]="coinForm.name" 
+            required
+            minlength="2"
+            maxlength="50"
+            class="form-control name-input"
+            placeholder="Enter package name (e.g., Starter Pack, Premium Bundle)"
+            #nameInput="ngModel">
+          <div class="field-help">This will be the display name for the coin package</div>
+          <div *ngIf="nameInput.invalid && nameInput.touched" class="error-message">
+            <span *ngIf="nameInput.errors?.['required']">Package name is required</span>
+            <span *ngIf="nameInput.errors?.['minlength']">Package name must be at least 2 characters</span>
+            <span *ngIf="nameInput.errors?.['maxlength']">Package name cannot exceed 50 characters</span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="coinAmount">Coin Amount *</label>
+            <input 
+              type="number" 
+              id="coinAmount" 
+              name="coinAmount"
+              [(ngModel)]="coinForm.amount" 
+              required
+              min="1"
+              max="100000"
+              class="form-control"
+              placeholder="Enter number of coins">
+          </div>
+          
+          <div class="form-group">
+            <label for="coinPrice">Price (₹) *</label>
+            <input 
+              type="number" 
+              id="coinPrice" 
+              name="coinPrice"
+              [(ngModel)]="coinForm.price" 
+              required
+              min="1"
+              max="100000"
+              class="form-control"
+              placeholder="Enter price in rupees">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="coinType">Package Type *</label>
+            <select 
+              id="coinType" 
+              name="coinType"
+              [(ngModel)]="coinForm.type" 
+              required
+              class="form-control">
+              <option value="starter">Starter</option>
+              <option value="standard">Standard</option>
+              <option value="premium">Premium</option>
+              <option value="vip">VIP</option>
+              <option value="special">Special Offer</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="coinDiscount">Discount (%)</label>
+            <input 
+              type="number" 
+              id="coinDiscount" 
+              name="coinDiscount"
+              [(ngModel)]="coinForm.discount" 
+              min="0"
+              max="100"
+              class="form-control"
+              placeholder="Enter discount percentage">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="coinDescription">Description</label>
+            <textarea 
+              id="coinDescription" 
+              name="coinDescription"
+              [(ngModel)]="coinForm.description" 
+              class="form-control"
+              rows="3"
+              placeholder="Enter package description"></textarea>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input 
+              type="checkbox" 
+              [(ngModel)]="coinForm.isActive" 
+              name="coinIsActive">
+            Active Package
+          </label>
+        </div>
+
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input 
+              type="checkbox" 
+              [(ngModel)]="coinForm.isPopular" 
+              name="coinIsPopular">
+            Popular Package
+          </label>
+        </div>
+      </form>
+    </div>
+    
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" (click)="closeCoinForm()">
+        Cancel
+      </button>
+      <button type="button" class="btn btn-primary" (click)="saveCoin()" [disabled]="!coinFormRef.form.valid">
+        {{ editingCoin ? 'Update Package' : 'Create Package' }}
+      </button>
+    </div>
+  </div>
+</div>
+
