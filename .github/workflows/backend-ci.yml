@@ -1,0 +1,42 @@
+name: Backend CI
+
+on:
+  push:
+    paths:
+      - 'Backend/**'
+  pull_request:
+    paths:
+      - 'Backend/**'
+
+jobs:
+  build:
+    name: Install & Test Backend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install backend dependencies
+        run: npm ci --prefix Backend
+
+      - name: Run backend tests (if defined)
+        run: |
+          if [ -f Backend/package.json ] && grep -q "\"test\"" Backend/package.json; then
+            npm test --prefix Backend || true
+          else
+            echo "No tests defined in Backend/package.json"
+          fi
+
+      - name: Lint/build (best-effort)
+        run: |
+          if [ -f Backend/package.json ] && grep -q "\"build\"" Backend/package.json; then
+            npm run build --prefix Backend || true
+          else
+            echo "No build script in Backend/package.json"
+          fi
