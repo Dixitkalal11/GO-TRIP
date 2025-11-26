@@ -1,0 +1,293 @@
+<div class="contact-container">
+  <!-- Hero Section -->
+  <div class="contact-hero">
+    <div class="container">
+      <div class="hero-content">
+        <h1>Contact Us</h1>
+        <p class="hero-subtitle">We're here to help! Reach out to us through any of the channels below</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- Quick Contact Cards -->
+    <div class="quick-contact-section">
+      <div class="quick-contact-grid">
+        <div class="quick-card" (click)="openPhone()">
+          <div class="quick-icon phone">
+            <i class="bi bi-telephone-fill"></i>
+          </div>
+          <h3>Call Us</h3>
+          <p>{{ contactInfo.phone }}</p>
+          <span class="quick-action">Click to Call</span>
+        </div>
+
+        <div class="quick-card" (click)="openEmail()">
+          <div class="quick-icon email">
+            <i class="bi bi-envelope-fill"></i>
+          </div>
+          <h3>Email Us</h3>
+          <p>{{ contactInfo.email }}</p>
+          <span class="quick-action">Click to Email</span>
+        </div>
+
+        <div class="quick-card" (click)="openChat()">
+          <div class="quick-icon chat">
+            <i class="bi bi-chat-dots-fill"></i>
+          </div>
+          <h3>Live Chat</h3>
+          <p>24/7 Available</p>
+          <span class="quick-action">Start Chat</span>
+        </div>
+
+        <div class="quick-card" routerLink="/enquiry">
+          <div class="quick-icon enquiry">
+            <i class="bi bi-question-circle-fill"></i>
+          </div>
+          <h3>Send Enquiry</h3>
+          <p>Get Quick Help</p>
+          <span class="quick-action">Go to Enquiry</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="main-content-grid">
+      <!-- Left Side - Contact Form -->
+      <div class="form-section">
+        <div class="form-card">
+          <div class="form-header">
+            <h2>Send us a Message</h2>
+            <p>Fill out the form below and we'll get back to you within 24 hours</p>
+          </div>
+
+          <form #contactForm="ngForm" (ngSubmit)="submit()" class="contact-form">
+            <div class="form-group">
+              <label for="name">
+                <i class="bi bi-person"></i>
+                Full Name<span class="required-asterisk">*</span>
+              </label>
+              <input 
+                type="text" 
+                id="name"
+                [(ngModel)]="form.name" 
+                name="name" 
+                placeholder="John Doe"
+                required
+                #name="ngModel"
+                (blur)="form.name = validationService.removeExtraSpaces(form.name)" />
+              <app-form-error [control]="name.control" fieldName="Full name"></app-form-error>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="email">
+                  <i class="bi bi-envelope"></i>
+                  Email<span class="required-asterisk">*</span>
+                </label>
+                <input 
+                  type="email" 
+                  id="email"
+                  [(ngModel)]="form.email" 
+                  name="email" 
+                  placeholder="john@example.com"
+                  required
+                  email
+                  #email="ngModel"
+                  (blur)="form.email = validationService.trim(form.email)" />
+                <app-form-error [control]="email.control" fieldName="Email"></app-form-error>
+              </div>
+
+              <div class="form-group">
+                <label for="phone">
+                  <i class="bi bi-phone"></i>
+                  Phone
+                </label>
+                <input 
+                  type="tel" 
+                  id="phone"
+                  [(ngModel)]="form.phone" 
+                  name="phone" 
+                  placeholder="+91 98765 43210" />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="subject">
+                <i class="bi bi-tag"></i>
+                Subject<span class="required-asterisk">*</span>
+              </label>
+              <input 
+                type="text" 
+                id="subject"
+                [(ngModel)]="form.subject" 
+                name="subject" 
+                placeholder="What is this regarding?"
+                required
+                #subject="ngModel"
+                (blur)="form.subject = validationService.removeExtraSpaces(form.subject)" />
+              <app-form-error [control]="subject.control" fieldName="Subject"></app-form-error>
+            </div>
+
+            <div class="form-group">
+              <label for="message">
+                <i class="bi bi-chat-left-text"></i>
+                Message<span class="required-asterisk">*</span>
+              </label>
+              <textarea 
+                id="message"
+                rows="6" 
+                [(ngModel)]="form.message" 
+                name="message" 
+                placeholder="Tell us how we can help you..."
+                required
+                #message="ngModel"
+                (blur)="form.message = validationService.removeExtraSpaces(form.message)"></textarea>
+              <app-form-error [control]="message.control" fieldName="Message"></app-form-error>
+            </div>
+
+            <button 
+              type="submit" 
+              class="submit-btn" 
+              [disabled]="submitting">
+              <span *ngIf="!submitting">
+                <i class="bi bi-send-fill"></i>
+                Send Message
+              </span>
+              <span *ngIf="submitting">
+                <i class="bi bi-hourglass-split spinning"></i>
+                Sending...
+              </span>
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Right Side - Info & Features -->
+      <div class="info-section">
+        <!-- Office Info -->
+        <div class="info-card">
+          <div class="info-header">
+            <i class="bi bi-building"></i>
+            <h3>Office Information</h3>
+          </div>
+          <div class="info-content">
+            <div class="info-item">
+              <i class="bi bi-geo-alt-fill"></i>
+              <div>
+                <strong>Address</strong>
+                <p>{{ contactInfo.address }}</p>
+              </div>
+            </div>
+            <div class="info-item">
+              <i class="bi bi-clock-fill"></i>
+              <div>
+                <strong>Business Hours</strong>
+                <p>{{ contactInfo.hours }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Social Media -->
+        <div class="info-card">
+          <div class="info-header">
+            <i class="bi bi-share"></i>
+            <h3>Connect With Us</h3>
+          </div>
+          <div class="social-grid">
+            <a 
+              *ngFor="let social of socialLinks" 
+              [href]="social.url" 
+              target="_blank"
+              class="social-item"
+              [style.background]="social.color">
+              <i class="bi" [ngClass]="social.icon"></i>
+              <span>{{ social.name }}</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Why Contact Us -->
+        <div class="info-card">
+          <div class="info-header">
+            <i class="bi bi-info-circle"></i>
+            <h3>Why Contact Us?</h3>
+          </div>
+          <div class="features-list">
+            <div class="feature-item">
+              <i class="bi bi-check-circle-fill"></i>
+              <span>24/7 Customer Support</span>
+            </div>
+            <div class="feature-item">
+              <i class="bi bi-check-circle-fill"></i>
+              <span>Quick Response Time</span>
+            </div>
+            <div class="feature-item">
+              <i class="bi bi-check-circle-fill"></i>
+              <span>Expert Travel Assistance</span>
+            </div>
+            <div class="feature-item">
+              <i class="bi bi-check-circle-fill"></i>
+              <span>Booking Support</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FAQ Section -->
+    <div class="faq-section">
+      <div class="faq-header">
+        <h2>Frequently Asked Questions</h2>
+        <p>Find quick answers to common questions</p>
+      </div>
+      <div class="faq-grid">
+        <div 
+          *ngFor="let faq of faqs; let i = index" 
+          class="faq-card">
+          <div class="faq-question">
+            <h4>{{ faq.question }}</h4>
+          </div>
+          <div class="faq-answer">
+            <p>{{ faq.answer }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Map Section -->
+    <div class="map-section">
+      <div class="map-header">
+        <h2>Visit Our Office</h2>
+        <p>Come and meet us in person</p>
+      </div>
+      <div class="map-wrapper">
+        <div class="map-container">
+          <iframe 
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3671.924516744!2d72.571365!3d23.022505!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x395e848aba5bd449%3A0x4fcedd11614f6516!2sAhmedabad%2C%20Gujarat%20380001!5e0!3m2!1sen!2sin!4v1699000000000!5m2!1sen!2sin"
+            width="100%"
+            height="450"
+            style="border:0; border-radius: 20px;"
+            allowfullscreen=""
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+            title="GoTrip Office Location - Ahmedabad">
+          </iframe>
+          <div class="map-overlay">
+            <div class="map-info">
+              <i class="bi bi-geo-alt-fill"></i>
+              <div>
+                <h3>{{ contactInfo.address }}</h3>
+                <a href="https://maps.google.com/?q=123+Travel+Street+Ahmedabad+Gujarat+380001" target="_blank" class="map-btn">
+                  <i class="bi bi-box-arrow-up-right"></i>
+                  Open in Google Maps
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

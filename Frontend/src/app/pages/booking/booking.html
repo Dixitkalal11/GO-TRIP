@@ -1,0 +1,203 @@
+    <!-- Travel Mode Selection Page -->
+    <div class="travel-mode-container">
+
+      <div class="container">
+        <!-- Header -->
+        <div class="header-section">
+          <h1 class="main-title">Choose Your Travel Mode</h1>
+          <p class="subtitle">Select from bus, train, or flight options and start your journey with us.</p>
+        </div>
+
+        <!-- Travel Mode Cards -->
+        <div class="travel-cards">
+          <div class="travel-card"
+               *ngFor="let mode of travelModes"
+               [class.selected]="selectedMode === mode.id"
+               [class.selecting]="isAnimating && selectedMode === mode.id"
+               [class.popular]="mode.isPopular">
+
+            <!-- Full photo background -->
+            <div class="card-photo" *ngIf="mode.image" [ngStyle]="{'background-image': 'url(' + mode.image + ')'}"></div>
+            <div class="card-scrim"></div>
+
+            <!-- Popular Badge -->
+            <div class="popular-badge" *ngIf="mode.isPopular">
+              <i class="bi bi-star-fill"></i> Most Popular
+            </div>
+
+            <div class="card-content">
+              <!-- Icon badge -->
+              <div class="icon-badge">
+                <i [class]="mode.icon"></i>
+              </div>
+
+              <!-- Header Section with Title and Description -->
+              <div style="width: 100%; padding: 0 20px; margin-top: 20px;">
+              <!-- Transport Name -->
+              <h3 class="transport-name">{{ mode.name }}</h3>
+
+              <!-- Description -->
+              <p class="transport-description">{{ mode.description }}</p>
+              </div>
+
+              <!-- Info panel (white overlay) -->
+              <div class="info-panel" style="margin: 20px; width: calc(100% - 40px);">
+                <!-- Stats row -->
+                <div class="stat-row" *ngIf="mode.priceRange || mode.durationRange">
+                  <div class="stat-block">
+                    <div class="stat-label">From</div>
+                    <div class="stat-value">{{ mode.priceRange }}</div>
+                  </div>
+                  <div class="divider"></div>
+                  <div class="stat-block">
+                    <div class="stat-label">Duration</div>
+                    <div class="stat-value">{{ mode.durationRange }}</div>
+                  </div>
+                </div>
+
+                <!-- Quick info -->
+                <ul class="card-info">
+                  <li *ngFor="let a of mode.amenities">
+                    <i class="bi bi-check-circle-fill"></i> {{ a }}
+                  </li>
+                </ul>
+              </div>
+
+              <!-- Action Button -->
+              <button class="action-button"
+                      [class.selected-button]="selectedMode === mode.id"
+                      (click)="handleButtonClick(mode.id)">
+                {{ selectedMode === mode.id ? 'Selected' : 'Book Now' }}
+                <i class="bi bi-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Content Sections with Light Background -->
+    <div class="content-sections-wrapper">
+      <div class="container">
+        <!-- Benefits -->
+        <div class="benefits-section content-section">
+          <h2 class="section-heading">Why book with GoTrip?</h2>
+          <div class="benefits-grid">
+            <div class="benefit-item">
+              <i class="bi bi-shield-check"></i>
+              <h3>Secure Payments</h3>
+              <p>128-bit encryption with trusted gateways for safe checkout.</p>
+            </div>
+            <div class="benefit-item">
+              <i class="bi bi-currency-rupee"></i>
+              <h3>Best Prices</h3>
+              <p>Transparent pricing and seasonal offers across all routes.</p>
+            </div>
+            <div class="benefit-item">
+              <i class="bi bi-coin"></i>
+              <h3>Earn Coins</h3>
+              <p>Get coins on every trip and redeem for instant discounts.</p>
+            </div>
+            <div class="benefit-item">
+              <i class="bi bi-headset"></i>
+              <h3>24/7 Support</h3>
+              <p>Real people ready to help before, during, and after your trip.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- How it works -->
+        <div class="how-it-works content-section">
+          <h2 class="section-heading">How it works</h2>
+          <div class="steps">
+            <div class="step">
+              <span class="step-badge">1</span>
+              <h4>Select a mode</h4>
+              <p>Pick Bus, Train, or Flight as per your need.</p>
+            </div>
+            <div class="step">
+              <span class="step-badge">2</span>
+              <h4>Search & compare</h4>
+              <p>Filter by timings, amenities, ratings, and price.</p>
+            </div>
+            <div class="step">
+              <span class="step-badge">3</span>
+              <h4>Book & pay</h4>
+              <p>Pay securely and get instant confirmation with e-ticket.</p>
+            </div>
+          </div>
+        </div>
+
+
+
+        <!-- Popular routes -->
+        <div class="routes-section content-section">
+          <h2 class="section-heading">Popular Routes</h2>
+          <div class="routes-grid">
+            <div class="route-chip"><i class="bi bi-geo-alt"></i> Mumbai → Pune</div>
+            <div class="route-chip"><i class="bi bi-geo-alt"></i> Delhi → Jaipur</div>
+            <div class="route-chip"><i class="bi bi-geo-alt"></i> Bengaluru → Chennai</div>
+            <div class="route-chip"><i class="bi bi-geo-alt"></i> Ahmedabad → Surat</div>
+            <div class="route-chip"><i class="bi bi-geo-alt"></i> Hyderabad → Vijayawada</div>
+            <div class="route-chip"><i class="bi bi-geo-alt"></i> Kolkata → Durgapur</div>
+            <div class="route-chip"><i class="bi bi-geo-alt"></i> Pune → Mumbai</div>
+            <div class="route-chip"><i class="bi bi-geo-alt"></i> Jaipur → Delhi</div>
+            <div class="route-chip"><i class="bi bi-geo-alt"></i> Chennai → Bengaluru</div>
+            <div class="route-chip"><i class="bi bi-geo-alt"></i> Surat → Ahmedabad</div>
+          </div>
+        </div>
+
+        <!-- Smart savings tips -->
+        <div class="tips-section content-section">
+          <h2 class="section-heading">Smart Savings Tips</h2>
+          <ul class="tips-list">
+            <li><i class="bi bi-clock-history"></i> Book 7–10 days early for best fares</li>
+            <li><i class="bi bi-brightness-high"></i> Travel off-peak (Tue–Thu) to save more</li>
+            <li><i class="bi bi-coin"></i> Use GoTrip Coins at checkout for instant discounts</li>
+            <li><i class="bi bi-percent"></i> Check student/senior tabs for extra benefits</li>
+            <li><i class="bi bi-calendar-check"></i> Subscribe to alerts for flash sales and deals</li>
+            <li><i class="bi bi-people"></i> Book group tickets for additional discounts</li>
+          </ul>
+        </div>
+
+        <!-- FAQ -->
+        <div class="faq-section content-section">
+          <h2 class="section-heading">Frequently Asked Questions</h2>
+          <div class="faq-grid">
+            <div class="faq-item">
+              <div class="faq-question"><i class="bi bi-question-circle"></i> Can I cancel or reschedule my ticket?</div>
+              <p>Yes. Policies vary by operator. You'll see exact rules before payment and on your e‑ticket.</p>
+            </div>
+            <div class="faq-item">
+              <div class="faq-question"><i class="bi bi-question-circle"></i> How do GoTrip Coins work?</div>
+              <p>Earn coins on every confirmed trip. Redeem them on the payment page to reduce your final fare.</p>
+            </div>
+            <div class="faq-item">
+              <div class="faq-question"><i class="bi bi-question-circle"></i> Is my payment secure?</div>
+              <p>We use PCI‑DSS compliant gateways and 128‑bit encryption to protect your transactions.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Need help CTA -->
+        <div class="help-cta content-section">
+          <div class="help-text">
+            <i class="bi bi-headset"></i>
+            <div>
+              <h3>Need help with your booking?</h3>
+              <p>Our support team is available 24/7 to assist you.</p>
+            </div>
+          </div>
+          <a routerLink="/enquiry" class="help-btn">Get Support</a>
+        </div>
+
+         <!-- Trust badges -->
+         <div class="trust-strip content-section">
+          <div class="trust-item"><i class="bi bi-patch-check-fill"></i> Verified operators</div>
+          <div class="trust-item"><i class="bi bi-star-fill"></i> 4.7/5 user rating</div>
+          <div class="trust-item"><i class="bi bi-shield-lock-fill"></i> PCI-DSS compliant</div>
+          <div class="trust-item"><i class="bi bi-arrow-repeat"></i> Easy cancellations</div>
+        </div>
+      </div>
+    </div>
+    <!-- End Content Sections Wrapper -->

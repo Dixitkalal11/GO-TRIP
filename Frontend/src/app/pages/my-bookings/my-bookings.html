@@ -1,0 +1,355 @@
+<!-- My Dashboard Page -->
+<div class="dashboard-container">
+  <div class="container">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+      <div class="header-content">
+        <h1 class="dashboard-title">My Bookings</h1>
+        <p class="dashboard-subtitle">View your trips, download tickets, and manage payments</p>
+      </div>
+    </div>
+
+  <!-- Cancel Ticket Modal -->
+  <div class="modal-backdrop" *ngIf="showCancelModal" (click)="closeCancelModal()"></div>
+  <div class="modal-sheet" *ngIf="showCancelModal">
+    <div class="modal-header">
+      <h3>Cancel Ticket</h3>
+      <button class="icon-btn" (click)="closeCancelModal()"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="modal-body" *ngIf="cancelTarget">
+      <div class="summary">
+        <div>
+          <div class="summary-title">{{ cancelTarget.fromCity }} → {{ cancelTarget.toCity }}</div>
+          <div class="summary-sub">Journey Date: {{ cancelTarget.travelDate }}</div>
+        </div>
+        <div class="amount">
+          <div class="label">Amount</div>
+          <div class="value">₹ {{ cancelTarget.price }}</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="field">
+          <label>Reason</label>
+          <select [(ngModel)]="cancelReason">
+            <option value="">Select a reason</option>
+            <option>Changed travel plans</option>
+            <option>Booked by mistake</option>
+            <option>Price too high</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="field readonly">
+          <label>Cancellation Fee (10% up to ₹500)</label>
+          <div class="pill pill-red">₹ {{ cancelFeePreview }}</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Notes (optional)</label>
+        <textarea rows="3" [(ngModel)]="cancelNotes" placeholder="Add any details"></textarea>
+      </div>
+
+      <div class="refund-box">
+        <div class="left">
+          <div class="title">Refund to your account</div>
+          <div class="sub">Will reflect within 10 days</div>
+        </div>
+        <div class="right">₹ {{ cancelRefundPreview }}</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn ghost" (click)="closeCancelModal()">Close</button>
+      <button class="btn danger" (click)="cancelBooking(cancelTarget.id, cancelReason || cancelNotes)">Confirm Cancel</button>
+    </div>
+  </div>
+    <!-- Navigation Tabs -->
+    <div class="nav-tabs">
+      <button class="nav-tab" [class.active]="activeTab === 'bookings'" (click)="activeTab = 'bookings'">
+        My Bookings
+      </button>
+      <button class="nav-tab" [class.active]="activeTab === 'transactions'" (click)="activeTab = 'transactions'">
+        Transactions
+      </button>
+      <button class="nav-tab" [class.active]="activeTab === 'cancelled'" (click)="activeTab = 'cancelled'">
+        Cancelled Tickets
+      </button>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading your bookings...</p>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error" class="error-state">
+      <i class="bi bi-exclamation-triangle"></i>
+      <h3>Oops! Something went wrong</h3>
+      <p>{{ error }}</p>
+      <button class="retry-btn" (click)="loadBookings()">Try Again</button>
+    </div>
+
+    <!-- My Bookings Tab Content -->
+    <div *ngIf="activeTab === 'bookings'" class="tab-content">
+      <!-- Empty State -->
+      <div *ngIf="!loading && !error && bookings.length === 0" class="empty-state">
+        <i class="bi bi-calendar-x"></i>
+        <h3>No bookings yet</h3>
+        <p>Start your journey by booking a trip!</p>
+        <button class="book-now-btn" (click)="goToHome()">Book Now</button>
+      </div>
+
+      <!-- Bookings List -->
+      <div *ngIf="!loading && !error && bookings.length > 0" class="bookings-list">
+        <div class="booking-card" *ngFor="let booking of bookings; let i = index">
+          <div class="booking-content">
+            <!-- Left Section -->
+            <div class="booking-left">
+              <div class="operator-info">
+                <div class="operator-icon">
+                  <i class="bi" [ngClass]="getTransportIcon(booking.travelMode)"></i>
+                </div>
+                <div class="operator-details">
+                  <h3 class="operator-name">{{ booking.operator }}</h3>
+                  <p class="booking-id">Booking #: GT-{{ generateBookingId(booking.id) }}</p>
+                </div>
+              </div>
+
+              <!-- Compact summary chips -->
+              <div class="meta-row">
+                <!-- Transport-specific primary meta -->
+                <span class="meta-chip" *ngIf="booking.travelMode?.toLowerCase() === 'bus'">
+                  <i class="bi bi-receipt"></i>
+                  <span>Ticket #: GT-{{ generateBookingId(booking.id) }}</span>
+                </span>
+                <span class="meta-chip" *ngIf="booking.travelMode?.toLowerCase() === 'train'">
+                  <i class="bi bi-hash"></i>
+                  <span>PNR: {{ booking.pnrNumber || 'N/A' }}</span>
+                </span>
+                <span class="meta-chip" *ngIf="booking.travelMode?.toLowerCase() === 'flight' || booking.travelMode?.toLowerCase() === 'plane'">
+                  <i class="bi bi-airplane"></i>
+                  <span>Seats: {{ (booking.seatNumbers && booking.seatNumbers.length ? booking.seatNumbers.join(', ') : 'N/A') }}</span>
+                </span>
+                <span class="meta-chip">
+                  <i class="bi bi-people"></i>
+                  <span>{{ booking.passengers.length }} passengers</span>
+                </span>
+                <!-- Extra chips by mode -->
+                <span class="meta-chip" *ngIf="booking.travelMode?.toLowerCase() === 'bus' && booking.seatNumbers?.length">
+                  <i class="bi bi-grid-3x3"></i>
+                  <span>Seats: {{ (booking.seatNumbers || []).join(', ') }}</span>
+                </span>
+                <span class="meta-chip" *ngIf="booking.travelMode?.toLowerCase() === 'train' && booking.berthAllocated?.length">
+                  <i class="bi bi-layout-three-columns"></i>
+                  <span>Berth: {{ (booking.berthAllocated || []).join(', ') }}</span>
+                </span>
+                <span class="meta-chip" *ngIf="booking.travelMode?.toLowerCase() === 'train' && booking.classCoach">
+                  <i class="bi bi-train-front"></i>
+                  <span>Class: {{ booking.classCoach }}</span>
+                </span>
+                <span class="meta-chip" *ngIf="booking.isRoundTrip">
+                  <i class="bi bi-arrow-left-right"></i>
+                  <span>Round Trip</span>
+                </span>
+              </div>
+
+              <div class="booking-info">
+                <div class="info-item">
+                  <i class="bi bi-geo-alt"></i>
+                  <span class="info-label">Route</span>
+                  <span class="info-value">{{ booking.fromCity }} → {{ booking.toCity }}</span>
+                </div>
+                <div class="info-item">
+                  <i class="bi bi-clock"></i>
+                  <span class="info-label">Journey Time</span>
+                  <span class="info-value">{{ getJourneyTime(booking) }}</span>
+                </div>
+                <div class="info-item">
+                  <i class="bi bi-calendar"></i>
+                  <span class="info-label">Journey Date</span>
+                  <span class="info-value">{{ booking.travelDate }}</span>
+                </div>
+                <div class="info-item">
+                  <i class="bi bi-people"></i>
+                  <span class="info-label">Passengers</span>
+                  <span class="info-value">{{ booking.passengers.length }} person(s)</span>
+                </div>
+                <div class="info-item" *ngIf="booking.discountType">
+                  <i class="bi bi-tag"></i>
+                  <span class="info-label">Discount Type</span>
+                  <span class="info-value">{{ getDiscountTypeText(booking.discountType) }}</span>
+                </div>
+                <div class="info-item" *ngIf="booking.isRoundTrip">
+                  <i class="bi bi-arrow-left-right"></i>
+                  <span class="info-label">Trip Type</span>
+                  <span class="info-value">Round Trip</span>
+                </div>
+                <div class="info-item" *ngIf="booking.isRoundTrip && booking.returnDate">
+                  <i class="bi bi-calendar-check"></i>
+                  <span class="info-label">Return Date</span>
+                  <span class="info-value">{{ booking.returnDate }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Section -->
+            <div class="booking-right">
+              <div class="status-badge" [class]="getStatusClass(booking.status)">
+                {{ getStatusText(booking.status) }}
+              </div>
+
+              <div class="amount-section">
+                <span class="amount-label">Total Amount</span>
+                <span class="amount-value">₹ {{ booking.price }}</span>
+              </div>
+
+              <div class="coins-section">
+                <i class="bi bi-coin"></i>
+                <span class="coins-label">Coins Earned</span>
+                <span class="coins-value">+{{ calculateCoins(booking.price) }}</span>
+              </div>
+
+              <!-- Payment Information - Always show -->
+              <div class="payment-meta" style="margin: 1rem 0; padding: 0.75rem; background: #f8f9fa; border-radius: 8px;">
+                <div class="info-item small" style="margin-bottom: 0.5rem;">
+                  <i class="bi bi-credit-card"></i>
+                  <span class="info-label">Paid Via</span>
+                  <span class="info-value">{{ booking.paymentMethod || booking.payment_method || 'N/A' }}</span>
+                </div>
+                <div class="info-item small">
+                  <i class="bi bi-hash"></i>
+                  <span class="info-label">Payment ID</span>
+                  <span class="info-value mono">{{ booking.paymentId || booking.payment_id || 'N/A' }}</span>
+                </div>
+              </div>
+
+              <button class="download-btn" style="margin-bottom: .5rem;"
+                      (click)="openCancelModal(booking)" [disabled]="booking.status !== 'confirmed'">
+                <i class="bi bi-x-circle"></i>
+                Cancel Ticket
+              </button>
+
+              <button class="download-btn" style="margin-bottom: .5rem;"
+                      (click)="downloadTicketPDF(booking)" [disabled]="booking.status !== 'confirmed'">
+                <i class="bi bi-file-earmark-pdf"></i>
+                Download PDF
+              </button>
+
+              <button class="download-btn" style="background: #28a745; color: white; border: none;" 
+                      (click)="sendTicketEmail(booking)" [disabled]="booking.status !== 'confirmed'">
+                <i class="bi bi-envelope-check"></i>
+                Send to Email
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cancelled Tickets Tab -->
+    <div *ngIf="activeTab === 'cancelled'" class="tab-content">
+      <div *ngIf="!hasCancelled()" class="empty-state">
+        <i class="bi bi-x-octagon"></i>
+        <h3>No cancelled tickets</h3>
+        <p>Cancel a ticket from My Bookings to see it here.</p>
+      </div>
+      <div *ngIf="hasCancelled()" class="bookings-list">
+        <div class="booking-card" *ngFor="let booking of getCancelledBookings() | slice:0:100">
+          <div class="booking-content">
+            <div class="booking-left">
+              <div class="operator-info">
+                <div class="operator-icon"><i class="bi" [ngClass]="getTransportIcon(booking.travelMode)"></i></div>
+                <div class="operator-details">
+                  <h3 class="operator-name">{{ booking.operator }}</h3>
+                  <p class="booking-id">Booking #: GT-{{ generateBookingId(booking.id) }}</p>
+                </div>
+              </div>
+              <div class="booking-info">
+                <div class="info-item"><i class="bi bi-geo-alt"></i><span class="info-label">Route</span><span class="info-value">{{ booking.fromCity }} → {{ booking.toCity }}</span></div>
+                <div class="info-item"><i class="bi bi-calendar"></i><span class="info-label">Journey Date</span><span class="info-value">{{ booking.travelDate }}</span></div>
+              </div>
+            </div>
+            <div class="booking-right">
+              <div class="status-badge status-failed">Cancelled</div>
+              <div class="amount-section"><span class="amount-label">Total Amount</span><span class="amount-value">₹ {{ booking.price }}</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Transactions Tab Content -->
+    <div *ngIf="activeTab === 'transactions'" class="tab-content">
+      <!-- Transaction Filters -->
+      <div class="transaction-filters">
+        <div class="filter-group">
+          <input
+            type="text"
+            class="search-input"
+            placeholder="Search transactions..."
+            [(ngModel)]="searchTerm"
+            (input)="filterTransactions()"
+          >
+          <i class="bi bi-search search-icon"></i>
+        </div>
+
+        <div class="filter-group">
+          <input
+            type="date"
+            class="date-input"
+            [(ngModel)]="dateFilter"
+            (change)="filterTransactions()"
+          >
+          <i class="bi bi-calendar3 date-icon"></i>
+        </div>
+
+        <!-- Type filter pills -->
+        <div class="filter-group" style="flex: 0 0 auto; display: flex; gap: 0.5rem; align-items: center;">
+          <button class="clear-filters-btn" [class.active]="typeFilter==='all'" (click)="typeFilter='all'; filterTransactions()">All</button>
+          <button class="clear-filters-btn" [class.active]="typeFilter==='payment'" (click)="typeFilter='payment'; filterTransactions()">Payments</button>
+          <button class="clear-filters-btn" [class.active]="typeFilter==='coin_earned'" (click)="typeFilter='coin_earned'; filterTransactions()">Coins Earned</button>
+          <button class="clear-filters-btn" [class.active]="typeFilter==='coin_spent'" (click)="typeFilter='coin_spent'; filterTransactions()">Coins Spent</button>
+        </div>
+
+        <button class="clear-filters-btn" (click)="clearFilters()">
+          <i class="bi bi-x-circle"></i>
+          Clear Filters
+        </button>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="filteredTransactions.length === 0" class="empty-state">
+        <i class="bi bi-receipt"></i>
+        <h3>No transactions found</h3>
+        <p *ngIf="searchTerm || dateFilter">Try adjusting your search criteria</p>
+        <p *ngIf="!searchTerm && !dateFilter">Your transaction history will appear here</p>
+      </div>
+
+      <!-- Transactions List -->
+      <div *ngIf="filteredTransactions.length > 0" class="transactions-list">
+        <div class="transaction-card" *ngFor="let transaction of filteredTransactions">
+          <div class="transaction-content">
+            <div class="transaction-left">
+              <div class="transaction-icon" [class]="getTransactionColor(transaction.type)">
+                <i class="bi" [ngClass]="getTransactionIcon(transaction.type)"></i>
+              </div>
+              <div class="transaction-details">
+                <h4 class="transaction-description">{{ transaction.description }}</h4>
+                <p class="transaction-date">{{ transaction.date | date:'medium' }}</p>
+                <span class="transaction-type">{{ transaction.type.replace('_', ' ').toUpperCase() }}</span>
+              </div>
+            </div>
+
+            <div class="transaction-right">
+              <div class="transaction-amount" [class]="getTransactionColor(transaction.type)">{{ transactionAmountText(transaction) }}</div>
+              <div class="transaction-status" [class]="'status-' + transaction.status">
+                {{ transaction.status.toUpperCase() }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

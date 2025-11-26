@@ -1,0 +1,643 @@
+<!-- Travel Hero Section with Background -->
+<div class="travel-hero">
+  <!-- Background Image -->
+  <div class="hero-bg">
+    <img src="assets/images/travel2.jpg" alt="Travel Background" class="bg-image">
+    <div class="bg-overlay"></div>
+  </div>
+
+
+  <!-- Main Search Section -->
+  <div class="search-hero">
+    <div class="container">
+      <div class="hero-layout">
+        <!-- Left Side - Content -->
+        <div class="hero-left">
+          <div class="hero-content">
+            <h1>Welcome to GoTrip</h1>
+            <p class="hero-subtitle">Your gateway to amazing journeys across India</p>
+
+            <!-- Quick Stats -->
+            <div class="quick-stats">
+              <div class="stat-item">
+                <div class="stat-number">50+</div>
+                <div class="stat-label">Cities</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-number">1000+</div>
+                <div class="stat-label">Routes</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-number">24/7</div>
+                <div class="stat-label">Support</div>
+              </div>
+            </div>
+
+            <!-- Popular Destinations -->
+            <div class="popular-destinations">
+              <h3>Popular Destinations</h3>
+              <div class="destination-tags">
+                <span class="destination-tag">Mumbai</span>
+                <span class="destination-tag">Delhi</span>
+                <span class="destination-tag">Bangalore</span>
+                <span class="destination-tag">Goa</span>
+                <span class="destination-tag">Kerala</span>
+                <span class="destination-tag">Rajasthan</span>
+              </div>
+            </div>
+
+            <!-- Features -->
+            <div class="hero-features">
+              <div class="feature-item">
+                <i class="bi bi-shield-check"></i>
+                <span>Safe & Secure</span>
+              </div>
+              <div class="feature-item">
+                <i class="bi bi-clock"></i>
+                <span>24/7 Support</span>
+              </div>
+              <div class="feature-item">
+                <i class="bi bi-currency-rupee"></i>
+                <span>Best Prices</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Side - Search Card -->
+        <div class="hero-right">
+          <div class="search-card">
+        <!-- Transport Selection in Card -->
+        <div class="transport-selection-card">
+          <div class="transport-option" [class.active]="transportType === 'bus'" (click)="onTransportTypeChange('bus')">
+            <i class="bi bi-bus-front"></i>
+            <span>Bus</span>
+          </div>
+          <div class="transport-option" [class.active]="transportType === 'train'" (click)="onTransportTypeChange('train')">
+            <i class="bi bi-train-front"></i>
+            <span>Train</span>
+          </div>
+          <div class="transport-option" [class.active]="transportType === 'flight'" (click)="onTransportTypeChange('flight')">
+            <i class="bi bi-airplane"></i>
+            <span>Flight</span>
+          </div>
+        </div>
+
+        <h1 class="search-title">Find Your Perfect Trip</h1>
+
+        <form (ngSubmit)="onSearch()" class="search-form">
+          <!-- Trip Type Selection -->
+        <div class="trip-type-selection" [formGroup]="searchForm">
+          <div class="trip-option">
+            <input type="radio" id="oneway" name="tripType" value="oneway" formControlName="tripType" (change)="onTripTypeChange()">
+            <label for="oneway">One Way</label>
+          </div>
+          <div class="trip-option">
+            <input type="radio" id="roundtrip" name="tripType" value="roundtrip" formControlName="tripType" (change)="onTripTypeChange()">
+            <label for="roundtrip">Round Trip</label>
+          </div>
+        </div>
+
+        <!-- Main Search Form - Horizontal Layout -->
+        <div class="main-search-form" [class.round-trip]="tripType === 'roundtrip'" [formGroup]="searchForm">
+          <!-- From and To Fields Row -->
+          <div class="from-to-row">
+            <!-- From Field -->
+            <div class="search-field" [class.error]="validationErrors.from">
+              <label class="field-label">From</label>
+              <select formControlName="from" (change)="onFromCityChange()">
+                <option value="">{{ getFromPlaceholder() }}</option>
+                <option *ngFor="let city of getUniqueCities()" [value]="city">{{ city }}</option>
+              </select>
+              <div class="error-message" *ngIf="validationErrors.from">{{ validationErrors.from }}</div>
+            </div>
+
+            <!-- Swap Button -->
+            <div class="swap-button" (click)="swapCities()">
+              <i class="bi bi-arrow-left-right"></i>
+            </div>
+
+            <!-- To Field -->
+            <div class="search-field" [class.error]="validationErrors.to">
+              <label class="field-label">To</label>
+              <select formControlName="to" (change)="onToCityChange()">
+                <option value="">{{ getToPlaceholder() }}</option>
+                <option *ngFor="let city of getDestinationCities()" [value]="city" [disabled]="city === searchForm.get('from')?.value">{{ city }}</option>
+              </select>
+              <div class="error-message" *ngIf="validationErrors.to">{{ validationErrors.to }}</div>
+            </div>
+          </div>
+
+          <!-- Date Fields Row -->
+          <div class="date-row">
+            <!-- Departure Date -->
+            <div class="search-field" [class.error]="validationErrors.date">
+              <label class="field-label">Departure</label>
+              <input type="date" formControlName="date" [min]="getTodayDate()" />
+              <div class="error-message" *ngIf="validationErrors.date">{{ validationErrors.date }}</div>
+            </div>
+
+            <!-- Return Date - Only show for Round Trip -->
+            <div class="search-field" *ngIf="tripType === 'roundtrip'" [class.error]="validationErrors.returnDate">
+              <label class="field-label">Return</label>
+              <input type="date" formControlName="returnDate" [min]="getMinReturnDate()" placeholder="Add Return for bigger discounts" />
+              <div class="error-message" *ngIf="validationErrors.returnDate">{{ validationErrors.returnDate }}</div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Special Fares -->
+        <div class="special-fares">
+          <div class="fare-option"
+               [class.active]="selectedDiscountType === 'regular'"
+               [class.disabled]="!canUseDiscountType('regular')"
+               (click)="selectDiscountType('regular')">
+            <span>Regular</span>
+            <small>Standard pricing</small>
+          </div>
+          <div class="fare-option"
+               [class.active]="selectedDiscountType === 'student'"
+               [class.disabled]="!canUseDiscountType('student')"
+               (click)="selectDiscountType('student')">
+            <span>Student</span>
+            <small>{{getCurrentCoinsEarned('student')}} coins bonus</small>
+            <div class="booking-info" *ngIf="userBookingStats.totalBookings < 3">
+              <small>First 3 bookings: +5 bonus!</small>
+            </div>
+            <div class="coins-info" *ngIf="!canUseDiscountType('student')">
+              <small>Need {{getDiscountInfo('student').coinsRequired}} coins</small>
+            </div>
+          </div>
+          <div class="fare-option"
+               [class.active]="selectedDiscountType === 'senior'"
+               [class.disabled]="!canUseDiscountType('senior')"
+               (click)="selectDiscountType('senior')">
+            <span>Senior Citizen</span>
+            <small>{{getCurrentCoinsEarned('senior')}} coins bonus</small>
+            <div class="booking-info" *ngIf="userBookingStats.totalBookings < 3">
+              <small>First 3 bookings: +5 bonus!</small>
+            </div>
+            <div class="coins-info" *ngIf="!canUseDiscountType('senior')">
+              <small>Need {{getDiscountInfo('senior').coinsRequired}} coins</small>
+            </div>
+          </div>
+        </div>
+
+          <!-- Search Button -->
+          <button type="submit" class="search-btn">
+            <i class="bi bi-search"></i>
+            SEARCH
+          </button>
+        </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Content Sections Wrapper with Light Background -->
+<div class="content-sections-wrapper">
+<!-- Travel Benefits Section -->
+<section class="travel-benefits">
+  <div class="container">
+    <div class="benefits-header">
+    <h2 class="section-title">Why Choose GoTrip?</h2>
+      <p class="section-subtitle">Experience the best in travel booking with our comprehensive features</p>
+    </div>
+    <div class="benefits-grid">
+      <div class="benefit-card">
+        <div class="benefit-icon-wrapper">
+        <div class="benefit-icon">
+          <i class="bi bi-shield-check"></i>
+          </div>
+        </div>
+        <h3>Safe & Secure</h3>
+        <p>Your data and payments are protected with bank-level security. Travel with confidence knowing your information is safe.</p>
+        <div class="benefit-badge">Security</div>
+      </div>
+
+      <div class="benefit-card">
+        <div class="benefit-icon-wrapper">
+        <div class="benefit-icon">
+          <i class="bi bi-clock"></i>
+          </div>
+        </div>
+        <h3>24/7 Support</h3>
+        <p>Round-the-clock customer support to help you with bookings, cancellations, and travel assistance whenever you need it.</p>
+        <div class="benefit-badge">Support</div>
+      </div>
+
+      <div class="benefit-card">
+        <div class="benefit-icon-wrapper">
+        <div class="benefit-icon">
+          <i class="bi bi-currency-rupee"></i>
+          </div>
+        </div>
+        <h3>Best Prices</h3>
+        <p>Compare prices across multiple operators and get the best deals. We ensure you never pay more than necessary.</p>
+        <div class="benefit-badge">Affordable</div>
+      </div>
+
+      <div class="benefit-card">
+        <div class="benefit-icon-wrapper">
+        <div class="benefit-icon">
+          <i class="bi bi-phone"></i>
+          </div>
+        </div>
+        <h3>Mobile Friendly</h3>
+        <p>Book on the go with our user-friendly mobile app. Get real-time updates and manage your bookings anywhere.</p>
+        <div class="benefit-badge">Mobile</div>
+      </div>
+
+      <div class="benefit-card">
+        <div class="benefit-icon-wrapper">
+          <div class="benefit-icon">
+            <i class="bi bi-lightning-charge"></i>
+          </div>
+        </div>
+        <h3>Instant Booking</h3>
+        <p>Book your tickets in seconds with our fast and efficient booking system. No waiting, no delays - just instant confirmations.</p>
+        <div class="benefit-badge">Fast</div>
+      </div>
+
+      <div class="benefit-card">
+        <div class="benefit-icon-wrapper">
+          <div class="benefit-icon">
+            <i class="bi bi-award"></i>
+          </div>
+        </div>
+        <h3>Rewards Program</h3>
+        <p>Earn coins on every booking and redeem them for discounts. The more you travel, the more you save with our loyalty program.</p>
+        <div class="benefit-badge">Rewards</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Transport Options Cards Section -->
+<section class="transport-cards-section">
+  <div class="container">
+    <h2 class="section-title">Book Your Journey</h2>
+    <p class="section-subtitle">Choose from multiple travel options across India</p>
+    <div class="transport-cards-grid">
+      <div class="transport-card" routerLink="/booking/bus">
+        <div class="transport-card-icon">
+          <i class="bi bi-bus-front"></i>
+        </div>
+        <h3>Bus Tickets</h3>
+        <p>Book buses across India with real-time fares and availability. Comfortable rides at affordable prices.</p>
+        <div class="transport-card-features">
+          <span><i class="bi bi-check-circle"></i> AC & Non-AC</span>
+          <span><i class="bi bi-check-circle"></i> Sleeper & Seater</span>
+          <span><i class="bi bi-check-circle"></i> 1000+ Routes</span>
+        </div>
+        <button class="transport-card-btn">Book Bus <i class="bi bi-arrow-right"></i></button>
+      </div>
+
+      <div class="transport-card" routerLink="/booking/train">
+        <div class="transport-card-icon">
+          <i class="bi bi-train-front"></i>
+        </div>
+        <h3>Train Tickets</h3>
+        <p>Check schedules, fares, and plan your train journey easily. Book tickets for all major railway routes.</p>
+        <div class="transport-card-features">
+          <span><i class="bi bi-check-circle"></i> All Classes</span>
+          <span><i class="bi bi-check-circle"></i> Tatkal Booking</span>
+          <span><i class="bi bi-check-circle"></i> PNR Status</span>
+        </div>
+        <button class="transport-card-btn">Book Train <i class="bi bi-arrow-right"></i></button>
+      </div>
+
+      <div class="transport-card" routerLink="/booking/plane">
+        <div class="transport-card-icon">
+          <i class="bi bi-airplane"></i>
+        </div>
+        <h3>Flight Tickets</h3>
+        <p>Compare and book flights at the best prices. Domestic and international flights available.</p>
+        <div class="transport-card-features">
+          <span><i class="bi bi-check-circle"></i> Best Deals</span>
+          <span><i class="bi bi-check-circle"></i> Multiple Airlines</span>
+          <span><i class="bi bi-check-circle"></i> Easy Cancellation</span>
+        </div>
+        <button class="transport-card-btn">Book Flight <i class="bi bi-arrow-right"></i></button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Popular Destinations Cards -->
+<section class="popular-destinations-section">
+  <div class="container">
+    <h2 class="section-title">Popular Destinations</h2>
+    <p class="section-subtitle">Explore India's most beautiful places</p>
+    <div class="destinations-grid">
+      <div class="destination-card" (click)="searchDestination('Mumbai')">
+        <div class="destination-image" style="background-image: url('https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=400&h=300&fit=crop');">
+          <div class="destination-overlay"></div>
+        </div>
+        <div class="destination-content">
+          <h3>Mumbai</h3>
+          <p>The City of Dreams</p>
+          <div class="destination-stats">
+            <span><i class="bi bi-calendar"></i> Year Round</span>
+            <span><i class="bi bi-people"></i> Popular</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="destination-card" (click)="searchDestination('Delhi')">
+        <div class="destination-image" style="background-image: url('https://images.unsplash.com/photo-1582979512210-99b6a53386f9?w=400&h=300&fit=crop');">
+          <div class="destination-overlay"></div>
+        </div>
+        <div class="destination-content">
+          <h3>Delhi</h3>
+          <p>Capital of India</p>
+          <div class="destination-stats">
+            <span><i class="bi bi-calendar"></i> Year Round</span>
+            <span><i class="bi bi-people"></i> Popular</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="destination-card" (click)="searchDestination('Goa')">
+        <div class="destination-image" style="background-image: url('https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=400&h=300&fit=crop');">
+          <div class="destination-overlay"></div>
+        </div>
+        <div class="destination-content">
+          <h3>Goa</h3>
+          <p>Beach Paradise</p>
+          <div class="destination-stats">
+            <span><i class="bi bi-calendar"></i> Year Round</span>
+            <span><i class="bi bi-people"></i> Popular</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="destination-card" (click)="searchDestination('Kerala')">
+        <div class="destination-image" style="background-image: url('https://images.unsplash.com/photo-1582979512210-99b6a53386f9?w=400&h=300&fit=crop');">
+          <div class="destination-overlay"></div>
+        </div>
+        <div class="destination-content">
+          <h3>Kerala</h3>
+          <p>God's Own Country</p>
+          <div class="destination-stats">
+            <span><i class="bi bi-calendar"></i> Year Round</span>
+            <span><i class="bi bi-people"></i> Popular</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="destination-card" (click)="searchDestination('Rajasthan')">
+        <div class="destination-image" style="background-image: url('https://images.unsplash.com/photo-1539650116574-75c0c6d73ab6?w=400&h=300&fit=crop');">
+          <div class="destination-overlay"></div>
+        </div>
+        <div class="destination-content">
+          <h3>Rajasthan</h3>
+          <p>Land of Kings</p>
+          <div class="destination-stats">
+            <span><i class="bi bi-calendar"></i> Year Round</span>
+            <span><i class="bi bi-people"></i> Popular</span>
+          </div>
+        </div>
+  </div>
+
+      <div class="destination-card" (click)="searchDestination('Bangalore')">
+        <div class="destination-image" style="background-image: url('https://images.unsplash.com/photo-1529258283598-8d8fe85b3c5d?w=400&h=300&fit=crop');">
+          <div class="destination-overlay"></div>
+        </div>
+        <div class="destination-content">
+          <h3>Bangalore</h3>
+          <p>Garden City</p>
+          <div class="destination-stats">
+            <span><i class="bi bi-calendar"></i> Year Round</span>
+            <span><i class="bi bi-people"></i> Popular</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+</div>
+<!-- End Content Sections Wrapper -->
+
+<!-- Stats Section -->
+<section class="stats-section">
+  <div class="stats-background">
+    <div class="stats-pattern"></div>
+  </div>
+  <div class="container">
+    <div class="stats-header">
+      <h2 class="stats-title">Our Achievements</h2>
+      <p class="stats-subtitle">Numbers that speak for our commitment to excellence</p>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-card-inner">
+          <div class="stat-icon-wrapper">
+            <div class="stat-icon">
+              <i class="bi bi-geo-alt-fill"></i>
+            </div>
+            <div class="stat-icon-bg"></div>
+          </div>
+          <div class="stat-content">
+            <div class="stat-number">50+</div>
+            <div class="stat-label">Cities</div>
+            <p class="stat-description">Covering major destinations across India</p>
+          </div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-inner">
+          <div class="stat-icon-wrapper">
+            <div class="stat-icon">
+              <i class="bi bi-diagram-3-fill"></i>
+            </div>
+            <div class="stat-icon-bg"></div>
+          </div>
+          <div class="stat-content">
+            <div class="stat-number">1000+</div>
+            <div class="stat-label">Routes</div>
+            <p class="stat-description">Connecting cities with multiple options</p>
+          </div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-inner">
+          <div class="stat-icon-wrapper">
+            <div class="stat-icon">
+              <i class="bi bi-people-fill"></i>
+            </div>
+            <div class="stat-icon-bg"></div>
+          </div>
+          <div class="stat-content">
+            <div class="stat-number">1M+</div>
+            <div class="stat-label">Happy Travelers</div>
+            <p class="stat-description">Trusted by travelers nationwide</p>
+          </div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-inner">
+          <div class="stat-icon-wrapper">
+            <div class="stat-icon">
+              <i class="bi bi-star-fill"></i>
+            </div>
+            <div class="stat-icon-bg"></div>
+          </div>
+          <div class="stat-content">
+            <div class="stat-number">4.8</div>
+            <div class="stat-label">Rating</div>
+            <p class="stat-description">Excellent service quality</p>
+    </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer-section">
+  <div class="footer-top-bar"></div>
+  <div class="container">
+    <div class="row">
+      <!-- Column 1: About Us & Motivation -->
+      <div class="col-md-4">
+        <div class="footer-brand">
+          <div class="logo-section">
+            <div class="footer-logo-wrapper">
+            <img src="assets/images/GoTrip Logo.png" alt="GoTrip Logo" class="footer-logo">
+            </div>
+            <span class="brand-name">GoTrip</span>
+          </div>
+          <h5 class="footer-title">About Us</h5>
+          <p class="brand-description">
+            GoTrip is India's leading online travel booking platform, dedicated to making travel accessible,
+            affordable, and enjoyable for everyone. We connect millions of travelers with reliable bus, train,
+            and flight services across the country.
+          </p>
+          <div class="motivation-section">
+            <div class="motivation-header">
+              <i class="bi bi-lightbulb-fill"></i>
+              <h6>Our Mission</h6>
+            </div>
+            <p>To empower every Indian to explore their country with ease, providing seamless booking experiences
+            and exceptional customer service. We believe travel should be simple, safe, and affordable for all.</p>
+          </div>
+          <div class="social-icons">
+            <a href="#" onclick="window.appToast?.info('Follow us on Facebook - @gotrip'); return false;" class="social-icon" title="Facebook">
+              <i class="bi bi-facebook"></i>
+            </a>
+            <a href="#" onclick="window.appToast?.info('Follow us on Twitter - @gotrip'); return false;" class="social-icon" title="Twitter">
+              <i class="bi bi-twitter"></i>
+            </a>
+            <a href="#" onclick="window.appToast?.info('Follow us on Instagram - @gotrip'); return false;" class="social-icon" title="Instagram">
+              <i class="bi bi-instagram"></i>
+            </a>
+            <a href="#" onclick="window.appToast?.info('Connect with us on LinkedIn - GoTrip'); return false;" class="social-icon" title="LinkedIn">
+              <i class="bi bi-linkedin"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Column 2: Quick Links -->
+      <div class="col-md-2">
+        <div class="footer-links">
+          <h5>Quick Links</h5>
+          <ul>
+            <li><a routerLink="/my-bookings" routerLinkActive="active"><i class="bi bi-ticket"></i> My Bookings</a></li>
+            <li><a routerLink="/packages" routerLinkActive="active"><i class="bi bi-box-seam"></i> Packages</a></li>
+            <li><a routerLink="/enquiry" routerLinkActive="active"><i class="bi bi-question-circle"></i> Enquiry</a></li>
+            <li><a routerLink="/contact" routerLinkActive="active"><i class="bi bi-telephone"></i> Contact</a></li>
+            <li><a routerLink="/profile" routerLinkActive="active"><i class="bi bi-person"></i> Profile</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Column 3: Services -->
+      <div class="col-md-3">
+        <div class="footer-links">
+          <h5>Our Services</h5>
+          <ul>
+            <li><a routerLink="/booking/bus" routerLinkActive="active"><i class="bi bi-bus-front"></i> Bus Booking</a></li>
+            <li><a routerLink="/booking/train" routerLinkActive="active"><i class="bi bi-train-front"></i> Train Booking</a></li>
+            <li><a routerLink="/booking/plane" routerLinkActive="active"><i class="bi bi-airplane"></i> Flight Booking</a></li>
+            <li><a routerLink="/booking/tour" routerLinkActive="active"><i class="bi bi-camera"></i> Tour Packages</a></li>
+            <li><a routerLink="/packages" routerLinkActive="active"><i class="bi bi-gift"></i> Special Offers</a></li>
+          </ul>
+          <h5 class="footer-subtitle">Legal</h5>
+          <ul>
+            <li><a routerLink="/terms-conditions" routerLinkActive="active"><i class="bi bi-file-text"></i> Terms & Conditions</a></li>
+            <li><a routerLink="/privacy-policy" routerLinkActive="active"><i class="bi bi-shield-lock"></i> Privacy Policy</a></li>
+            <li><a routerLink="/cancellation-policy" routerLinkActive="active"><i class="bi bi-x-circle"></i> Cancellation Policy</a></li>
+            <li><a routerLink="/coins-policy" routerLinkActive="active"><i class="bi bi-coin"></i> Coins Policy</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Column 4: Contact Us -->
+      <div class="col-md-3">
+        <div class="footer-contact">
+          <h5>Contact Us</h5>
+          <div class="contact-info">
+            <div class="contact-item">
+              <div class="contact-icon">
+                <i class="bi bi-geo-alt-fill"></i>
+              </div>
+              <span>123 Travel Street, Ahmedabad, Gujarat 380001, India</span>
+            </div>
+            <div class="contact-item">
+              <div class="contact-icon">
+                <i class="bi bi-telephone-fill"></i>
+              </div>
+              <a href="tel:+911234567890" class="contact-link">+91 123 456 7890</a>
+            </div>
+            <div class="contact-item">
+              <div class="contact-icon">
+                <i class="bi bi-envelope-fill"></i>
+              </div>
+              <a href="mailto:support@gotrip.com" class="contact-link">support@gotrip.com</a>
+            </div>
+            <div class="contact-item">
+              <div class="contact-icon">
+                <i class="bi bi-clock-fill"></i>
+              </div>
+              <span>24/7 Customer Support</span>
+            </div>
+          </div>
+          <div class="newsletter-section">
+            <div class="newsletter-header">
+              <i class="bi bi-bell-fill"></i>
+              <h6>Stay Updated</h6>
+            </div>
+            <p>Subscribe to get travel deals and offers</p>
+            <div class="newsletter-form">
+              <input type="email" placeholder="Your email address" class="newsletter-input">
+              <button class="newsletter-btn" onclick="window.appToast?.info('Thank you for subscribing!'); return false;" title="Subscribe">
+                <i class="bi bi-send-fill"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Copyright -->
+    <div class="copyright-section">
+      <div class="copyright-content">
+        <p class="copyright-text">© 2025 GoTrip. All rights reserved.</p>
+        <div class="copyright-links">
+          <span class="made-with-love">Made with <i class="bi bi-heart-fill"></i> in India</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- Floating Enquiry Button -->
+<button class="enquiry-btn" routerLink="/enquiry">
+  Enquire Now
+</button>

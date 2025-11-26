@@ -1,0 +1,27 @@
+<div class="toast-wrap">
+  <div *ngFor="let t of toasts" class="toast-item" [class.success]="t.type==='success'" [class.error]="t.type==='error'" [class.info]="t.type==='info'" [class.warning]="t.type==='warning'">
+    <div class="toast-left-border"></div>
+    <div class="toast-icon-wrapper">
+      <div class="toast-icon">
+        <i class="bi" [ngClass]="{
+          'bi-check-circle-fill': t.type==='success',
+          'bi-x-circle-fill': t.type==='error',
+          'bi-info-circle-fill': t.type==='info',
+          'bi-exclamation-triangle-fill': t.type==='warning'
+        }"></i>
+      </div>
+    </div>
+    <div class="toast-content">
+      <div class="toast-header">
+        <div class="toast-title" *ngIf="t.title">{{ t.title }}</div>
+        <div class="toast-type-label" *ngIf="!t.title">{{ t.type | titlecase }}</div>
+      </div>
+      <div class="toast-message">{{ t.message }}</div>
+    </div>
+    <button class="btn-close" aria-label="Close" (click)="dismiss(t.id)">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </div>
+</div>
+
+
