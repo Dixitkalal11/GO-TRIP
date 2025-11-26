@@ -1,0 +1,113 @@
+<div class="auth-container">
+  <div class="auth-wrapper">
+    <!-- Left Section - Branding -->
+    <div class="auth-left">
+      <div class="branding-content">
+        <div class="logo-container">
+          <img src="assets/images/GoTrip Logo.png" alt="GoTrip Logo" class="logo-image">
+        </div>
+        <h1 class="brand-name">GoTrip</h1>
+        <p class="brand-tagline">Your Journey, Our Priority</p>
+        
+        <div class="features-list">
+          <div class="feature-item">
+            <i class="bi bi-geo-alt-fill"></i>
+            <span>Real-time Route Tracking</span>
+          </div>
+          <div class="feature-item">
+            <i class="bi bi-shield-check"></i>
+            <span>Secure & Safe Bookings</span>
+          </div>
+          <div class="feature-item">
+            <i class="bi bi-graph-up-arrow"></i>
+            <span>Best Price Guarantee</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Section - Login Form -->
+    <div class="auth-right">
+      <div class="form-container">
+        <h2 class="welcome-title">Welcome Back</h2>
+        <p class="welcome-subtitle">Sign in to your account to continue</p>
+
+        <form (ngSubmit)="onLogin()" class="auth-form">
+          <div class="form-group">
+            <label for="email" class="form-label">
+              <i class="bi bi-envelope"></i>
+              Email Address<span class="required">*</span>
+            </label>
+            <input 
+              type="text" 
+              id="email" 
+              [(ngModel)]="email" 
+              name="email" 
+              class="form-input" 
+              placeholder="Enter your email or username" 
+              required
+            >
+            <small class="form-hint">Use 'admin' as username for admin access</small>
+      </div>
+
+          <div class="form-group">
+            <label for="password" class="form-label">
+              <i class="bi bi-lock"></i>
+              Password<span class="required">*</span>
+            </label>
+            <div class="password-input-wrapper">
+              <input 
+                [type]="showPassword ? 'text' : 'password'" 
+                id="password" 
+                [(ngModel)]="password" 
+                name="password" 
+                class="form-input" 
+                placeholder="Enter your password" 
+                required
+              >
+              <i 
+                class="bi password-toggle" 
+                [class.bi-eye]="showPassword" 
+                [class.bi-eye-slash]="!showPassword"
+                (click)="togglePasswordVisibility()"
+                style="cursor: pointer;"
+              ></i>
+            </div>
+      </div>
+
+          <div class="form-options">
+            <label class="checkbox-label">
+              <input 
+                type="checkbox" 
+                id="rememberMe" 
+                [(ngModel)]="rememberMe" 
+                name="rememberMe"
+                class="checkbox-input"
+              >
+              <span>Remember me</span>
+        </label>
+            <a routerLink="/forgot-password" class="forgot-link">Forgot password?</a>
+      </div>
+
+          <button type="submit" class="btn-primary">
+            Sign In
+            <i class="bi bi-arrow-right"></i>
+          </button>
+    </form>
+
+        <div class="divider">
+          <span>OR</span>
+        </div>
+
+        <button type="button" (click)="onGoogleLogin()" class="btn-google">
+          <i class="bi bi-google"></i>
+          Continue with Google
+    </button>
+
+        <p class="auth-footer">
+          Don't have an account? <a routerLink="/register" class="auth-link">Sign up</a>
+    </p>
+      </div>
+    </div>
+  </div>
+</div>

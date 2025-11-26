@@ -1,0 +1,297 @@
+<!-- Payment Page -->
+<div class="payment-container" *ngIf="!isProcessing && !isSuccess && !isFailed">
+  <div class="container">
+    <!-- Header -->
+    <div class="payment-header">
+      <button class="back-btn" (click)="goBackToBooking()">
+        <i class="bi bi-arrow-left"></i> Back to Booking
+      </button>
+      <h1>Complete Your Payment</h1>
+    </div>
+
+    <div class="payment-layout">
+      <!-- Left Column: Booking Summary & Coins -->
+      <div class="left-column">
+        <!-- Booking Summary Card -->
+        <div class="summary-card">
+          <div class="card-header">
+            <i class="bi bi-receipt"></i>
+            <h3>Booking Summary</h3>
+          </div>
+          <div class="summary-details" *ngIf="bookingData">
+            <div class="detail-row">
+              <div class="detail-left"><i class="bi bi-geo-alt"></i><span class="label">Trip</span></div>
+              <span class="value">{{ bookingData.fromCity }} → {{ bookingData.toCity }}</span>
+            </div>
+            <div class="detail-row">
+              <div class="detail-left"><i class="bi bi-bus-front"></i><span class="label">Travel Mode</span></div>
+              <span class="chip">{{ bookingData.selectedMode || 'bus' }}</span>
+            </div>
+            <div class="detail-row">
+              <div class="detail-left"><i class="bi bi-people"></i><span class="label">Passengers</span></div>
+              <span class="value">{{ bookingData.passengers.length }}</span>
+            </div>
+            <div class="detail-row">
+              <div class="detail-left"><i class="bi bi-calendar3"></i><span class="label">Date</span></div>
+              <span class="value">{{ bookingData.travelDate }}</span>
+            </div>
+            <div class="divider"></div>
+            <div class="total-row">
+              <span class="total-label">Total Amount</span>
+              <span class="total-amount">₹{{ getTotalPrice() }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Use GoTrip Coins - outside payment card -->
+        <div class="coins-card" style="margin-top: 1rem;">
+          <div class="card-header coins">
+            <i class="bi bi-coin"></i>
+            <h3>Use GoTrip Coins</h3>
+          </div>
+          <div class="coins-info">
+            <div class="available-coins">Available: {{ userCoins }} coins</div>
+            <div class="max-coins">Max usable: {{ maxCoinsToUse }} coins (₹{{ maxCoinsToUse * coinValue }})</div>
+          </div>
+          <div class="progress-container" *ngIf="useCoins && maxCoinsToUse > 0">
+            <div class="progress-bar">
+              <div class="progress-fill" [style.width.%]="(coinsToUse / maxCoinsToUse) * 100"></div>
+            </div>
+            <div class="progress-meta">
+              <span>{{ coinsToUse }} / {{ maxCoinsToUse }} coins</span>
+              <span *ngIf="coinsToUse>0">Saving ₹{{ getCoinDiscount() }}</span>
+            </div>
+          </div>
+          <div class="coins-toggle">
+            <button class="toggle-chip" [class.active]="useCoins" (click)="toggleCoinUsage()" [disabled]="userCoins===0 || getTotalPrice()===0">
+              <i class="bi bi-lightning-charge"></i>
+              <span *ngIf="!useCoins">Apply coins</span>
+              <span *ngIf="useCoins">Coins applied · -₹{{ getCoinDiscount() }}</span>
+            </button>
+            <span class="toggle-hint" *ngIf="!useCoins && maxCoinsToUse>0">Save up to ₹{{ maxCoinsToUse * coinValue }}</span>
+          </div>
+          <div class="coin-controls" *ngIf="useCoins">
+            <div class="coin-stepper">
+              <button class="step-btn" (click)="adjustCoins(-stepSize)" [disabled]="coinsToUse <= 0">−</button>
+              <div class="coin-display">{{ coinsToUse }} / {{ maxCoinsToUse }} coins · -₹{{ getCoinDiscount() }}</div>
+              <button class="step-btn" (click)="adjustCoins(stepSize)" [disabled]="coinsToUse >= maxCoinsToUse">+</button>
+            </div>
+            <div class="coin-presets">
+              <button class="chip" [class.active]="isPercentSelected(0)" (click)="useNoCoins()">None</button>
+              <button class="chip" [class.active]="isPercentSelected(25)" (click)="setCoinsPercent(25)">25%</button>
+              <button class="chip" [class.active]="isPercentSelected(50)" (click)="setCoinsPercent(50)">50%</button>
+              <button class="chip" [class.active]="isPercentSelected(100)" (click)="useAllCoins()">Max</button>
+            </div>
+            <div class="coin-discount" *ngIf="coinsToUse > 0">
+              <span class="discount-label">Discount</span>
+              <span class="discount-amount">-₹{{ getCoinDiscount() }}</span>
+            </div>
+          </div>
+        </div>
+
+
+
+      </div>
+
+      <!-- Right Column: Payment Method -->
+      <div class="right-column">
+        <div class="payment-card">
+          <div class="card-header">
+            <h3>Payment Method</h3>
+          </div>
+
+          <!-- Payment Method Tabs -->
+          <div class="payment-tabs">
+            <button class="tab-btn" [class.active]="paymentMethod==='card'" (click)="selectMethod('card')">
+              <i class="bi bi-credit-card"></i>
+              Credit/Debit Card
+            </button>
+            <button class="tab-btn" [class.active]="paymentMethod==='wallet'" (click)="selectMethod('wallet')">
+              <i class="bi bi-wallet2"></i>
+              Digital Wallet
+            </button>
+          </div>
+
+          <!-- Card Form -->
+          <form #cardForm="ngForm" *ngIf="paymentMethod==='card'" class="card-form">
+            <div class="form-group field-with-icon">
+              <label>Card Number<span class="required-asterisk">*</span></label>
+              <i class="bi bi-credit-card-2-front"></i>
+              <input 
+                type="text" 
+                name="cardNumber"
+                placeholder="1234 5678 9012 3456" 
+                class="card-input" 
+                maxlength="19"
+                [(ngModel)]="card.number" 
+                (input)="formatCardNumber()"
+                required
+                pattern="[0-9\s]{13,19}"
+                #cardNumber="ngModel"
+                (blur)="cardTouched = true" />
+              <app-form-error [control]="cardNumber.control" fieldName="Card number" *ngIf="cardTouched"></app-form-error>
+            </div>
+            <div class="form-row">
+              <div class="form-group field-with-icon">
+                <label>Expiry Date<span class="required-asterisk">*</span></label>
+                <i class="bi bi-calendar-event"></i>
+                <input 
+                  type="text" 
+                  name="expiry"
+                  placeholder="MM/YY" 
+                  class="expiry-input" 
+                  maxlength="5"
+                  [(ngModel)]="card.expiry" 
+                  (input)="formatExpiry()"
+                  required
+                  pattern="\d{2}\/\d{2}"
+                  #expiry="ngModel"
+                  (blur)="cardTouched = true" />
+                <app-form-error [control]="expiry.control" fieldName="Expiry date" *ngIf="cardTouched"></app-form-error>
+              </div>
+              <div class="form-group field-with-icon">
+                <label>CVV<span class="required-asterisk">*</span></label>
+                <i class="bi bi-shield-lock"></i>
+                <input 
+                  type="password" 
+                  name="cvv"
+                  placeholder="123" 
+                  class="cvv-input" 
+                  maxlength="4"
+                  [(ngModel)]="card.cvv"
+                  required
+                  pattern="[0-9]{3,4}"
+                  #cvv="ngModel"
+                  (blur)="cardTouched = true" />
+                <app-form-error [control]="cvv.control" fieldName="CVV" *ngIf="cardTouched"></app-form-error>
+              </div>
+            </div>
+            <div class="form-group field-with-icon">
+              <label>Cardholder Name<span class="required-asterisk">*</span></label>
+              <i class="bi bi-person"></i>
+              <input 
+                type="text" 
+                name="cardName"
+                placeholder="Full name as on card" 
+                class="name-input" 
+                [(ngModel)]="card.name"
+                required
+                #cardName="ngModel"
+                (blur)="card.name = validationService.removeExtraSpaces(card.name); cardTouched = true" />
+              <app-form-error [control]="cardName.control" fieldName="Cardholder name" *ngIf="cardTouched"></app-form-error>
+            </div>
+            <div class="trust-row">
+              <span class="trust-badge">PCI-DSS</span>
+              <span class="trust-badge">256-bit SSL</span>
+              <span>Payments are encrypted and secure</span>
+            </div>
+          </form>
+
+          <!-- Wallet Options -->
+          <div *ngIf="paymentMethod==='wallet'" class="wallet-options">
+            <div class="wallet-item" [class.active]="selectedWallet==='paytm'" (click)="selectWallet('paytm')">
+              <img class="wallet-logo" [src]="getWalletLogo('paytm')" alt="Paytm" (error)="onImgError($event)" />
+              <span>Paytm</span>
+            </div>
+            <div class="wallet-item" [class.active]="selectedWallet==='phonepe'" (click)="selectWallet('phonepe')">
+              <img class="wallet-logo" [src]="getWalletLogo('phonepe')" alt="PhonePe" (error)="onImgError($event)" />
+              <span>PhonePe</span>
+            </div>
+            <div class="wallet-item" [class.active]="selectedWallet==='gpay'" (click)="selectWallet('gpay')">
+              <img class="wallet-logo" [src]="getWalletLogo('gpay')" alt="Google Pay" (error)="onImgError($event)" />
+              <span>Google Pay</span>
+            </div>
+
+            <!-- QR for selected wallet -->
+            <div class="qr-box" *ngIf="selectedWallet">
+              <div class="qr-amount-display">
+                <div class="qr-amount-label">Pay Amount</div>
+                <div class="qr-amount-value">₹{{ getFinalAmount() }}</div>
+                <div class="qr-amount-subtitle">Scan to pay via {{ selectedWallet | titlecase }}</div>
+              </div>
+              <img class="qr-img" [src]="getWalletQr(selectedWallet)" alt="QR" (error)="onImgError($event, true)" />
+              <div class="qr-help">Scan the QR with {{ selectedWallet | titlecase }} and complete the payment.</div>
+              <button class="confirm-btn" (click)="confirmWalletPayment()">I have paid</button>
+              <div class="trust-row">
+                <span class="trust-badge">
+                  <i class="bi bi-shield-check"></i>
+                  UPI
+                </span>
+                <span class="trust-badge">
+                  <i class="bi bi-lock"></i>
+                  Secure
+                </span>
+                <span class="trust-badge">
+                  <i class="bi bi-bank"></i>
+                  Bank Connected
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Final Amount and Pay Button -->
+          <div class="payment-footer">
+            <div class="amount-row" *ngIf="getCoinDiscount() > 0">
+              <span class="amount-label">Original Amount</span>
+              <span class="amount-value">₹{{ getTotalPrice() }}</span>
+            </div>
+            <div class="amount-row" *ngIf="getCoinDiscount() > 0">
+              <span class="amount-label">Coin Discount</span>
+              <span class="amount-value discount">-₹{{ getCoinDiscount() }}</span>
+            </div>
+            <div class="divider" *ngIf="getCoinDiscount() > 0"></div>
+            <div class="final-amount-card">
+              <div class="amount-row final">
+                <span class="amount-label">Final Amount</span>
+                <span class="amount-value final">₹{{ getFinalAmount() }}</span>
+              </div>
+            </div>
+            <button class="pay-button" *ngIf="paymentMethod==='card'" [disabled]="isPayDisabled()" (click)="handlePay()"
+            >
+              Pay ₹{{ getFinalAmount() }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Processing State -->
+<div *ngIf="isProcessing" class="processing-box">
+  <div class="spinner"></div>
+  <h3>Processing Payment...</h3>
+  <p>Please wait while we process your payment securely.</p>
+</div>
+
+<!-- Success State -->
+<div *ngIf="isSuccess" class="success-box">
+  <div class="success-icon">✓</div>
+  <h3>Payment Successful!</h3>
+  <p>Your booking has been confirmed and tickets will be sent to your email.</p>
+              <div class="coins-earned-chip" *ngIf="!useCoins || coinsToUse === 0">
+                <i class="bi bi-coin"></i>
+                +{{ Math.floor(getTotalPrice() * 0.05) }} coins earned
+              </div>
+              <div class="coins-earned-chip" *ngIf="useCoins && coinsToUse > 0">
+                <i class="bi bi-coin"></i>
+                +{{ Math.floor(getTotalPrice() * 0.05) }} earned, -{{ coinsToUse }} used
+                <br>
+                <small>Net: {{ Math.floor(getTotalPrice() * 0.05) - coinsToUse }} coins</small>
+              </div>
+  <div class="redirect-message">
+    <div class="spinner-small"></div>
+    <p>Redirecting to My Bookings...</p>
+  </div>
+</div>
+
+<!-- Failure State -->
+<div *ngIf="isFailed" class="failure-box">
+  <div class="failure-icon">✗</div>
+  <h3>Payment Failed!</h3>
+  <p>Your payment could not be processed. Please try again.</p>
+  <div class="retry-section">
+    <button class="retry-btn" (click)="payNow()">Try Again</button>
+    <button class="back-btn-failure" (click)="goBackToBooking()">Back to Booking</button>
+  </div>
+</div>

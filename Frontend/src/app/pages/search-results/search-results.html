@@ -1,0 +1,82 @@
+<!-- Search Results Page -->
+<div class="search-results-container">
+  <!-- Header -->
+  <div class="search-header">
+    <div class="container">
+      <div class="d-flex justify-content-between align-items-center">
+        <a href="#" (click)="modifySearch()" class="modify-search-link">
+          <i class="bi bi-arrow-left"></i> Modify Search
+        </a>
+        <div class="route-info">
+          <span class="from-city">{{ from }}</span>
+          <i class="bi bi-arrow-right"></i>
+          <span class="to-city">{{ to }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results Count -->
+  <div class="container">
+    <div class="results-count">
+      <h2>{{ resultsText }}</h2>
+    </div>
+  </div>
+
+  <!-- Transport Options -->
+  <div class="container">
+    <div class="transport-options">
+      <div class="transport-card" *ngFor="let option of currentOptions">
+        <div class="transport-header">
+          <div class="operator-info">
+            <div class="transport-icon">
+              <i [class]="transportIcon"></i>
+            </div>
+            <div class="operator-details">
+              <span class="operator-name">{{ option.operator }}</span>
+              <span class="transport-type">{{ option.type }}</span>
+            </div>
+          </div>
+          <div class="rating">
+            <i class="bi bi-star-fill"></i>
+            <span>{{ option.rating }} ({{ option.reviews }} reviews)</span>
+          </div>
+        </div>
+
+        <div class="transport-timings">
+          <div class="departure">
+            <div class="time">{{ option.departure }}</div>
+            <div class="city">{{ from }}</div>
+          </div>
+          <div class="duration-line">
+            <div class="line"></div>
+            <div class="duration">{{ option.duration }}</div>
+            <div class="line"></div>
+          </div>
+          <div class="arrival">
+            <div class="time">{{ option.arrival }}</div>
+            <div class="city">{{ to }}</div>
+          </div>
+        </div>
+
+        <div class="transport-amenities">
+          <span class="amenity" *ngFor="let amenity of option.amenities">{{ amenity }}</span>
+        </div>
+
+        <div class="transport-footer">
+          <div class="availability">
+            <i class="bi bi-lightning-fill"></i>
+            <span>{{ option.seatsLeft }} seats left</span>
+          </div>
+          <div class="price-section">
+            <div class="price">₹ {{ option.price }}</div>
+            <div class="price-label">per person</div>
+          </div>
+          <button class="select-btn" (click)="selectTransport(option)">
+            Select
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

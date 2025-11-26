@@ -1,0 +1,164 @@
+<!-- Routes Management Component -->
+<div class="routes-management">
+  <div class="section-header">
+    <h2>Routes Management</h2>
+    <button class="btn btn-primary" (click)="showAddRouteForm()">
+      <i class="bi bi-plus-circle"></i>
+      Add New Route
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading routes...</p>
+  </div>
+
+  <!-- Routes Content -->
+  <div *ngIf="!loading" class="routes-content">
+    <!-- Routes Statistics -->
+    <div class="routes-stats">
+      <div class="stat-item">
+        <h3>{{ routes.length }}</h3>
+        <p>Total Routes</p>
+      </div>
+      <div class="stat-item">
+        <h3>{{ getRoutesByMode('bus').length }}</h3>
+        <p>Bus Routes</p>
+      </div>
+      <div class="stat-item">
+        <h3>{{ getRoutesByMode('train').length }}</h3>
+        <p>Train Routes</p>
+      </div>
+      <div class="stat-item">
+        <h3>{{ getRoutesByMode('flight').length }}</h3>
+        <p>Flight Routes</p>
+      </div>
+    </div>
+
+    <!-- Routes List -->
+    <div class="routes-list">
+      <div *ngIf="routes.length === 0" class="no-routes">
+        <i class="bi bi-map"></i>
+        <h3>No routes found</h3>
+        <p>Click "Add New Route" to create your first route.</p>
+        <button class="btn btn-primary" (click)="loadRoutes()">Reload Routes</button>
+      </div>
+
+      <div *ngFor="let route of routes; let i = index" class="route-card">
+        <div class="route-header">
+          <h4>{{ route.fromCity }} → {{ route.toCity }}</h4>
+          <span class="mode-badge" [class]="'mode-' + route.travelMode">
+            {{ route.travelMode | titlecase }}
+          </span>
+        </div>
+        
+        <div class="route-details">
+          <div class="detail-item">
+            <i class="bi bi-building"></i>
+            <span>{{ route.operator }}</span>
+          </div>
+          <div class="detail-item">
+            <i class="bi bi-currency-rupee"></i>
+            <span>{{ formatCurrency(route.price) }}</span>
+          </div>
+          <div class="detail-item">
+            <i class="bi bi-clock"></i>
+            <span>{{ route.duration }}</span>
+          </div>
+          <div class="detail-item">
+            <i class="bi bi-circle-fill" [class]="route.isActive ? 'status-active' : 'status-inactive'"></i>
+            <span>{{ route.isActive ? 'Active' : 'Inactive' }}</span>
+          </div>
+        </div>
+        
+        <div class="route-actions">
+          <button class="btn btn-sm btn-outline-primary" (click)="editRoute(route)">
+            <i class="bi bi-pencil"></i>
+            Edit
+          </button>
+          <button class="btn btn-sm btn-outline-danger" (click)="deleteRoute(route)">
+            <i class="bi bi-trash"></i>
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Route Form Modal -->
+  <div *ngIf="showRouteForm" class="modal-overlay" (click)="cancelRouteForm()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ editingRoute ? 'Edit Route' : 'Add New Route' }}</h3>
+        <button class="close-btn" (click)="cancelRouteForm()">
+          <i class="bi bi-x"></i>
+        </button>
+      </div>
+      
+      <form class="route-form" (ngSubmit)="saveRoute()">
+        <div class="form-row">
+          <div class="form-group">
+            <label>From City</label>
+            <input type="text" [(ngModel)]="routeForm.fromCity" name="fromCity" required>
+          </div>
+          <div class="form-group">
+            <label>To City</label>
+            <input type="text" [(ngModel)]="routeForm.toCity" name="toCity" required>
+          </div>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label>Travel Mode</label>
+            <select [(ngModel)]="routeForm.travelMode" name="travelMode" required>
+              <option value="bus">Bus</option>
+              <option value="train">Train</option>
+              <option value="flight">Flight</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Operator</label>
+            <input type="text" [(ngModel)]="routeForm.operator" name="operator" required>
+          </div>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label>Price (₹)</label>
+            <input type="number" [(ngModel)]="routeForm.price" name="price" required>
+          </div>
+          <div class="form-group">
+            <label>Duration</label>
+            <input type="text" [(ngModel)]="routeForm.duration" name="duration" placeholder="e.g., 2h 30m">
+          </div>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label>Departure Time</label>
+            <input type="time" [(ngModel)]="routeForm.departureTime" name="departureTime">
+          </div>
+          <div class="form-group">
+            <label>Arrival Time</label>
+            <input type="time" [(ngModel)]="routeForm.arrivalTime" name="arrivalTime">
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" [(ngModel)]="routeForm.isActive" name="isActive">
+            Active Route
+          </label>
+        </div>
+        
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" (click)="cancelRouteForm()">Cancel</button>
+          <button type="submit" class="btn btn-primary">
+            {{ editingRoute ? 'Update Route' : 'Add Route' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

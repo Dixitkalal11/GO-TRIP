@@ -1,0 +1,135 @@
+<div class="enquiry-container">
+  <div class="container">
+    <div class="enquiry-card">
+      <!-- Header Section -->
+      <div class="enquiry-header">
+        <h1>Send an Enquiry</h1>
+        <p class="subtitle">Have a question? We typically respond within 24 hours.</p>
+      </div>
+
+      <!-- Form Section -->
+      <form #enquiryForm="ngForm" (ngSubmit)="submit()" class="enquiry-form">
+        <!-- Name and Email Row -->
+        <div class="form-row">
+          <div class="form-field">
+            <label for="name">Name<span class="required-asterisk">*</span></label>
+            <input 
+              type="text" 
+              id="name"
+              [(ngModel)]="form.name" 
+              name="name" 
+              placeholder="Enter your full name"
+              required
+              #name="ngModel"
+              (blur)="form.name = validationService.removeExtraSpaces(form.name)" />
+            <app-form-error [control]="name.control" fieldName="Name"></app-form-error>
+          </div>
+          <div class="form-field">
+            <label for="email">Email<span class="required-asterisk">*</span></label>
+            <input 
+              type="email" 
+              id="email"
+              [(ngModel)]="form.email" 
+              name="email" 
+              placeholder="Enter your email address"
+              required
+              email
+              #email="ngModel"
+              (blur)="form.email = validationService.trim(form.email)" />
+            <app-form-error [control]="email.control" fieldName="Email"></app-form-error>
+          </div>
+        </div>
+
+        <!-- Phone, Category, and Reference ID Row -->
+        <div class="form-row">
+          <div class="form-field">
+            <label for="phone">Phone</label>
+            <input 
+              type="tel" 
+              id="phone"
+              [(ngModel)]="form.phone" 
+              name="phone" 
+              placeholder="Enter your phone number"
+              pattern="[0-9]{10}"
+              #phone="ngModel"
+              (blur)="onPhoneBlur()" />
+            <app-form-error [control]="phone.control" fieldName="Phone"></app-form-error>
+          </div>
+          <div class="form-field">
+            <label for="category">Category<span class="required-asterisk">*</span></label>
+            <select 
+              id="category"
+              [(ngModel)]="form.category" 
+              name="category" 
+              required
+              #category="ngModel">
+              <option value="">Select a category</option>
+              <option value="Payment">Payment Inquiry</option>
+              <option value="Booking">Booking Problem</option>
+              <option value="Refund">Refund / Cancellation</option>
+              <option value="Account">Account / Login</option>
+              <option value="General">General Question</option>
+              <option value="Other">Other</option>
+            </select>
+            <app-form-error [control]="category.control" fieldName="Category"></app-form-error>
+          </div>
+          <div class="form-field">
+            <label for="referenceId">Reference ID (Booking/Payment)</label>
+            <input 
+              type="text" 
+              id="referenceId"
+              [(ngModel)]="form.referenceId" 
+              name="referenceId" 
+              placeholder="e.g., GT-00012345 or PAY-..." />
+          </div>
+        </div>
+
+        <!-- Subject Row -->
+        <div class="form-row">
+          <div class="form-field full-width">
+            <label for="subject">Subject<span class="required-asterisk">*</span></label>
+            <input 
+              type="text" 
+              id="subject"
+              [(ngModel)]="form.subject" 
+              name="subject" 
+              placeholder="Enter the subject of your enquiry"
+              required
+              #subject="ngModel"
+              (blur)="form.subject = validationService.removeExtraSpaces(form.subject)" />
+            <app-form-error [control]="subject.control" fieldName="Subject"></app-form-error>
+          </div>
+        </div>
+
+        <!-- Message Row -->
+        <div class="form-row">
+          <div class="form-field full-width">
+            <label for="message">Message<span class="required-asterisk">*</span></label>
+            <textarea 
+              id="message"
+              rows="6" 
+              [(ngModel)]="form.message" 
+              name="message" 
+              placeholder="Please provide details about your enquiry..."
+              required
+              #message="ngModel"
+              (blur)="form.message = validationService.removeExtraSpaces(form.message)"></textarea>
+            <app-form-error [control]="message.control" fieldName="Message"></app-form-error>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="form-actions">
+          <button 
+            type="submit" 
+            class="btn-submit" 
+            [disabled]="submitting">
+            <i class="bi bi-send-fill" *ngIf="!submitting"></i>
+            <i class="bi bi-hourglass-split" *ngIf="submitting"></i>
+            <span>{{ submitting ? 'Sending…' : 'Send Enquiry' }}</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

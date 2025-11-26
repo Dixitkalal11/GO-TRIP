@@ -1,0 +1,342 @@
+<div class="profile-container">
+  <div class="container">
+    <!-- Header Section -->
+    <div class="profile-header">
+      <h1>My Profile</h1>
+      <p class="subtitle">Manage your personal information and preferences</p>
+    </div>
+
+    <div class="profile-content">
+      <!-- Left Side - Profile Photo -->
+      <div class="profile-photo-section">
+        <div class="photo-card">
+          <div class="photo-header">
+            <h3>Profile Photo</h3>
+          </div>
+          
+          <div class="photo-content">
+            <div class="photo-wrapper">
+              <div class="profile-photo" [style.backgroundImage]="photoDataUrl ? 'url(' + photoDataUrl + ')' : ''">
+                <span *ngIf="!photoDataUrl" class="placeholder-initial">
+                  {{ (profile.fullName || 'U') | slice:0:1 | uppercase }}
+                </span>
+              </div>
+              <button 
+                *ngIf="photoDataUrl" 
+                type="button" 
+                class="photo-remove-btn" 
+                (click)="removePhoto()" 
+                aria-label="Remove photo">
+                <i class="bi bi-x-lg"></i>
+              </button>
+            </div>
+
+            <div class="photo-upload-section">
+              <div class="upload-option">
+                <label class="upload-label">
+                  <i class="bi bi-upload"></i>
+                  <span>Upload from Device</span>
+                </label>
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  class="file-input" 
+                  (change)="onFileSelected($event)">
+              </div>
+
+              <div class="upload-option">
+                <label class="form-label">Use Photo by URL</label>
+                <div class="url-input-group">
+                  <input 
+                    type="url" 
+                    class="url-input" 
+                    #urlInput 
+                    placeholder="https://example.com/photo.jpg">
+                  <button 
+                    class="preview-btn" 
+                    (click)="usePhotoUrl(urlInput.value)">
+                    <i class="bi bi-eye"></i>
+                    Preview
+                  </button>
+                </div>
+              </div>
+
+              <div class="photo-actions">
+                <button 
+                  class="btn-apply" 
+                  (click)="applyPhoto()"
+                  [disabled]="!previewUrl || previewUrl === photoDataUrl">
+                  <i class="bi bi-check-lg"></i>
+                  Apply
+                </button>
+                <button 
+                  class="btn-remove" 
+                  (click)="removePhoto()"
+                  [disabled]="!photoDataUrl">
+                  <i class="bi bi-trash"></i>
+                  Remove
+                </button>
+              </div>
+            </div>
+
+            <div *ngIf="previewUrl && previewUrl !== photoDataUrl" class="preview-section">
+              <div class="preview-label">Preview</div>
+              <div class="preview-photo" [style.backgroundImage]="'url(' + previewUrl + ')'"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Side - Profile Information -->
+      <div class="profile-info-section">
+        <div class="info-card">
+          <div class="info-header">
+            <h3>Profile Information</h3>
+            <p>Update your personal details and preferences</p>
+          </div>
+
+          <form #profileForm="ngForm" (ngSubmit)="saveProfile()" class="profile-form">
+            <!-- Personal Information -->
+            <div class="form-section">
+              <h4 class="section-title">
+                <i class="bi bi-person"></i>
+                Personal Information
+              </h4>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="fullName">
+                    <i class="bi bi-person-fill"></i>
+                    Full Name<span class="required-asterisk">*</span>
+                  </label>
+                  <input 
+                    type="text" 
+                    id="fullName"
+                    class="form-input" 
+                    [(ngModel)]="profile.fullName" 
+                    name="fullName" 
+                    placeholder="Enter your full name"
+                    required
+                    #fullName="ngModel"
+                    (blur)="profile.fullName = validationService.removeExtraSpaces(profile.fullName)">
+                  <app-form-error [control]="fullName.control" fieldName="Full name"></app-form-error>
+                </div>
+
+                <div class="form-group">
+                  <label for="email">
+                    <i class="bi bi-envelope-fill"></i>
+                    Email<span class="required-asterisk">*</span>
+                  </label>
+                  <input 
+                    type="email" 
+                    id="email"
+                    class="form-input" 
+                    [(ngModel)]="profile.email" 
+                    name="email" 
+                    placeholder="your.email@example.com"
+                    required
+                    email
+                    #email="ngModel"
+                    (blur)="profile.email = validationService.trim(profile.email)">
+                  <app-form-error [control]="email.control" fieldName="Email"></app-form-error>
+                </div>
+
+                <div class="form-group">
+                  <label for="phone">
+                    <i class="bi bi-phone-fill"></i>
+                    Phone
+                  </label>
+                  <input 
+                    type="tel" 
+                    id="phone"
+                    class="form-input" 
+                    [(ngModel)]="profile.phone" 
+                    name="phone" 
+                    placeholder="+91 98765 43210"
+                    pattern="[0-9]{10}"
+                    #phone="ngModel"
+                    (blur)="onPhoneBlur()">
+                  <app-form-error [control]="phone.control" fieldName="Phone"></app-form-error>
+                </div>
+
+                <div class="form-group">
+                  <label for="dateOfBirth">
+                    <i class="bi bi-calendar-fill"></i>
+                    Date of Birth
+                  </label>
+                  <input 
+                    type="date" 
+                    id="dateOfBirth"
+                    class="form-input" 
+                    [(ngModel)]="profile.dateOfBirth" 
+                    name="dateOfBirth">
+                </div>
+
+                <div class="form-group">
+                  <label for="gender">
+                    <i class="bi bi-gender-ambiguous"></i>
+                    Gender
+                  </label>
+                  <select 
+                    id="gender"
+                    class="form-input" 
+                    [(ngModel)]="profile.gender" 
+                    name="gender">
+                    <option value="">Select Gender</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Address Information -->
+            <div class="form-section">
+              <h4 class="section-title">
+                <i class="bi bi-geo-alt"></i>
+                Address Information
+              </h4>
+              <div class="form-grid">
+                <div class="form-group full-width">
+                  <label for="addressLine1">
+                    <i class="bi bi-house-fill"></i>
+                    Address Line 1
+                  </label>
+                  <input 
+                    type="text" 
+                    id="addressLine1"
+                    class="form-input" 
+                    [(ngModel)]="profile.addressLine1" 
+                    name="addressLine1" 
+                    placeholder="Street address, apartment, suite">
+                </div>
+
+                <div class="form-group full-width">
+                  <label for="addressLine2">
+                    <i class="bi bi-building"></i>
+                    Address Line 2
+                  </label>
+                  <input 
+                    type="text" 
+                    id="addressLine2"
+                    class="form-input" 
+                    [(ngModel)]="profile.addressLine2" 
+                    name="addressLine2" 
+                    placeholder="Landmark, area, locality">
+                </div>
+
+                <div class="form-group">
+                  <label for="city">
+                    <i class="bi bi-geo-alt-fill"></i>
+                    City
+                  </label>
+                  <input 
+                    type="text" 
+                    id="city"
+                    class="form-input" 
+                    [(ngModel)]="profile.city" 
+                    name="city" 
+                    placeholder="City">
+                </div>
+
+                <div class="form-group">
+                  <label for="state">
+                    <i class="bi bi-map"></i>
+                    State
+                  </label>
+                  <input 
+                    type="text" 
+                    id="state"
+                    class="form-input" 
+                    [(ngModel)]="profile.state" 
+                    name="state" 
+                    placeholder="State">
+                </div>
+
+                <div class="form-group">
+                  <label for="pincode">
+                    <i class="bi bi-pin-map-fill"></i>
+                    Pincode
+                  </label>
+                  <input 
+                    type="text" 
+                    id="pincode"
+                    class="form-input" 
+                    [(ngModel)]="profile.pincode" 
+                    name="pincode" 
+                    placeholder="PIN Code">
+                </div>
+              </div>
+            </div>
+
+            <!-- Travel Preferences -->
+            <div class="form-section">
+              <h4 class="section-title">
+                <i class="bi bi-airplane"></i>
+                Travel Preferences
+              </h4>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="preferredMode">
+                    <i class="bi bi-diagram-3"></i>
+                    Preferred Mode
+                  </label>
+                  <select 
+                    id="preferredMode"
+                    class="form-input" 
+                    [(ngModel)]="profile.preferredMode" 
+                    name="preferredMode">
+                    <option value="">None</option>
+                    <option value="bus">Bus</option>
+                    <option value="train">Train</option>
+                    <option value="plane">Plane</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="defaultFrom">
+                    <i class="bi bi-geo-alt"></i>
+                    Default From
+                  </label>
+                  <input 
+                    type="text" 
+                    id="defaultFrom"
+                    class="form-input" 
+                    [(ngModel)]="profile.defaultFrom" 
+                    name="defaultFrom" 
+                    placeholder="City/Station">
+                </div>
+
+                <div class="form-group">
+                  <label for="defaultTo">
+                    <i class="bi bi-geo-alt-fill"></i>
+                    Default To
+                  </label>
+                  <input 
+                    type="text" 
+                    id="defaultTo"
+                    class="form-input" 
+                    [(ngModel)]="profile.defaultTo" 
+                    name="defaultTo" 
+                    placeholder="City/Station">
+                </div>
+              </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="form-actions">
+              <button type="submit" class="btn-save">
+                <i class="bi bi-check-lg"></i>
+                Save Changes
+              </button>
+              <button type="button" class="btn-clear" (click)="clearProfile()">
+                <i class="bi bi-x-lg"></i>
+                Clear
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
